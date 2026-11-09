@@ -8,11 +8,28 @@
 - Never start a step without the user's explicit approval. Propose the next step, then wait.
 - Keep the **Project Overview** and **Setup** sections current when they change.
 
+## Working Style (learned from the user)
+- The user writes the code themselves. Guide with hints and small snippets, create empty files only when asked, then review their code and report what is wrong. Do not rewrite their code unprompted.
+- Explain in plain English, step by step, and give the exact commands (Windows PowerShell, e.g. `.venv\Scriptslembic.exe ...`, run from `backend/`). Say what each line of code does when asked.
+- When the user asks to "check" something, read the files and actually run the check; report real findings, including extras beyond the plan.
+- Commit and push only when the user asks. Before pushing, make sure ignored files stay ignored and the Supabase password is in no pushed file.
+- Never print or copy the password from `.env`; use placeholders in docs and logs. If the user pastes it, do not repeat it.
+- Always log changes in this root `CLAUDE.md` (use its absolute path; a stray `backend/CLAUDE.md` was once created by running from the wrong directory).
+
 ## Project Overview
 RAG project. Remote: https://github.com/MMykka/RAG.git (branch: main)
 
 ## Setup
-- Git initialized locally, `origin` set to the remote above.
+- Git: `origin` is the remote above, branch `main`. `.env`, `.venv/`, `node_modules/`, `__pycache__/` are gitignored.
+- Backend: Python 3.12 venv at `backend/.venv`, packages in `backend/requirements.txt` (fastapi, uvicorn, sqlalchemy, alembic, psycopg2-binary, pgvector, ollama, pytest). Run Alembic from `backend/`.
+- Frontend: Vite + React scaffold in `frontend/` (`npm install` not run on this PC yet).
+- Database: Supabase Postgres, reached through the Session pooler string in root `.env` as `DATABASE_URL_DIRECT` (IPv4 network, so the direct host does not work). Tables `users`, `conversations`, `messages` exist; Alembic is at `2e87aeab9ed0 (head)`; pgvector is enabled.
+- Not installed (deliberate): Ollama, Docker. The app pooler string (port 6543) is not added yet; `settings.database_url` falls back to the direct URL.
+- `README.md` documents new-PC setup and the Alembic workflow.
+
+## Current Progress
+- Done: `RAG_TODO.md` Day 0 (except confirming Supabase with the company and installing Ollama) and Week 1 Days 1-2 (Database Schema).
+- Next: Week 1 Days 3-4, Backend APIs (waiting for user approval to start).
 
 ## Change Log
 ### 2026-11-09
@@ -133,3 +150,9 @@ RAG project. Remote: https://github.com/MMykka/RAG.git (branch: main)
 
 ### 2026-11-09 (README)
 - Wrote root `README.md` (shown on GitHub): overview, links to the two plan files, new-PC setup steps (clone, venv + requirements, `.env` from `.env.example`, `npm install`, `alembic current` check), Alembic workflow and rules, schema summary, status. Uses placeholders only; verified the real password is not in it.
+
+### 2026-11-09 (CLAUDE.md refresh)
+- Updated the Setup section and added a Current Progress section so the top of this file reflects the real state of the project.
+
+### 2026-11-09 (working style)
+- Added a Working Style section to this file so a Claude session on another PC knows how the user works (they write the code, Claude guides and reviews, plain-English explanations, commit/push only on request, never expose the password).
