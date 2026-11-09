@@ -10,7 +10,7 @@
 
 ## Working Style (learned from the user)
 - The user writes the code themselves. Guide with hints and small snippets, create empty files only when asked, then review their code and report what is wrong. Do not rewrite their code unprompted.
-- Explain in plain English, step by step, and give the exact commands (Windows PowerShell, e.g. `.venv\Scriptslembic.exe ...`, run from `backend/`). Say what each line of code does when asked.
+- Explain in plain English, step by step, and give the exact commands (Windows PowerShell, e.g. `.venv\Scripts\alembic.exe ...`, run from `backend/`). Say what each line of code does when asked.
 - When the user asks to "check" something, read the files and actually run the check; report real findings, including extras beyond the plan.
 - Commit and push only when the user asks. Before pushing, make sure ignored files stay ignored and the Supabase password is in no pushed file.
 - Never print or copy the password from `.env`; use placeholders in docs and logs. If the user pastes it, do not repeat it.
