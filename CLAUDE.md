@@ -130,3 +130,6 @@ RAG project. Remote: https://github.com/MMykka/RAG.git (branch: main)
 ### 2026-11-09 (commit: database schema complete)
 - Committed and pushed Week 1 Days 1-2 (Database Schema): models (`user.py`, `conversations.py`, `messages.py`), `config.py`/`database.py`, Alembic (`alembic.ini`, `alembic/`, migration `2e87aeab9ed0`), `RAG_TODO.md`, `RAG_Tech_Stack.md`.
 - Pre-push check: `.env`, `.venv/`, `node_modules/`, `__pycache__/` are ignored and not tracked; the Supabase password appears in no pushed file (`alembic.ini` keeps Alembic's placeholder URL).
+
+### 2026-11-09 (README)
+- Wrote root `README.md` (shown on GitHub): overview, links to the two plan files, new-PC setup steps (clone, venv + requirements, `.env` from `.env.example`, `npm install`, `alembic current` check), Alembic workflow and rules, schema summary, status. Uses placeholders only; verified the real password is not in it.
