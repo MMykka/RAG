@@ -24,11 +24,12 @@ RAG project. Remote: https://github.com/MMykka/RAG.git (branch: main)
 - Backend: Python 3.12 venv at `backend/.venv`, packages in `backend/requirements.txt` (fastapi, uvicorn, sqlalchemy, alembic, psycopg2-binary, pgvector, ollama, pytest). Run Alembic from `backend/`.
 - Frontend: Vite + React scaffold in `frontend/` (`npm install` not run on this PC yet).
 - Database: Supabase Postgres, reached through the Session pooler string in root `.env` as `DATABASE_URL_DIRECT` (IPv4 network, so the direct host does not work). Tables `users`, `conversations`, `messages` exist; Alembic is at `2e87aeab9ed0 (head)`; pgvector is enabled.
-- Not installed (deliberate): Ollama, Docker. The app pooler string (port 6543) is not added yet; `settings.database_url` falls back to the direct URL.
+- Ollama 0.21.0 is installed on this PC with models `llama3.2:latest` (chat) and `nomic-embed-text:latest` (embeddings, 768 dimensions), served at `http://localhost:11434`.
+- Not installed (deliberate): Docker. The app pooler string (port 6543) is not added yet; `settings.database_url` falls back to the direct URL.
 - `README.md` documents new-PC setup and the Alembic workflow.
 
 ## Current Progress
-- Done: `RAG_TODO.md` Day 0 (except confirming Supabase with the company and installing Ollama) and Week 1 Days 1-2 (Database Schema).
+- Done: `RAG_TODO.md` Day 0 (all items) and Week 1 Days 1-2 (Database Schema).
 - Next: Week 1 Days 3-4, Backend APIs (waiting for user approval to start).
 
 ## Change Log
@@ -156,3 +157,11 @@ RAG project. Remote: https://github.com/MMykka/RAG.git (branch: main)
 
 ### 2026-11-09 (working style)
 - Added a Working Style section to this file so a Claude session on another PC knows how the user works (they write the code, Claude guides and reviews, plain-English explanations, commit/push only on request, never expose the password).
+
+### 2026-11-10 (Day 0: Ollama)
+- Step `[stack] Install Ollama and pull the Llama model and nomic-embed-text`: on this PC Ollama 0.21.0 was already installed with `llama3.2:latest` and `nomic-embed-text:latest` already pulled, so nothing was installed.
+- Verified: `ollama run llama3.2` replied; `POST /api/embed` with `nomic-embed-text` returned a 768-dimension vector (the size for the Week 2 `chunks` vector column).
+- Ticked the item in `RAG_TODO.md`; updated Setup and Current Progress. Files: `RAG_TODO.md`, `CLAUDE.md`. An Ollama update (v0.40.16) is available; optional.
+
+### 2026-11-10 (Day 0: Supabase confirmed)
+- User confirmed the company accepts storing chats and documents on Supabase (cloud). The item was already ticked in `RAG_TODO.md`; updated Current Progress in `CLAUDE.md`. Day 0 is now fully complete.

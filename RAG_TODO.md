@@ -19,7 +19,7 @@ Items tagged **[stack]** were added to match the chosen tech stack (React + Vite
 - [x]  **[stack]** Create `.env` (never commit) and `.env.example`, and add `.env` to `.gitignore`
 - [x]  **[stack]** Add `config.py` (settings from `.env`) and `database.py` (engine, session, `get_db()`)
 - [x]  **[stack]** Confirm with the company that storing chats and documents on Supabase (cloud) is acceptable, otherwise use a local Postgres
-- [ ]  **[stack]** Install Ollama and pull the Llama model and `nomic-embed-text`
+- [x]  **[stack]** Install Ollama and pull the Llama model and `nomic-embed-text`
 
 ---
 
