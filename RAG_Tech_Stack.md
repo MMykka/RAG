@@ -62,6 +62,7 @@ company-chatbot/
 |  |  |- models/            # SQLAlchemy tables
 |  |  |- schemas/           # Pydantic request/response shapes
 |  |  |- routers/           # auth, conversations, stream, export, stats
+|  |  |- repositories/      # database queries (conversations, ...)
 |  |  '- services/          # llm, rag, export, cache
 |  |- alembic/versions/     # migrations
 |  |- tests/
@@ -79,7 +80,7 @@ company-chatbot/
 '- README.md
 ```
 
-Pattern: layered architecture (routers -> services -> models), with schemas validating input and output.
+Pattern: layered architecture (routers -> repositories -> models for database work, routers -> services for llm, rag, export and cache), with schemas validating input and output.
 
 ## Install
 

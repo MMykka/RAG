@@ -48,7 +48,7 @@ Items tagged **[stack]** were added to match the chosen tech stack (React + Vite
 - [ ]  Test each endpoint with curl or Postman before frontend integration
 - [ ]  **[stack]** Create the FastAPI app (`main.py`) and one router per feature in `routers/`
 - [ ]  **[stack]** Add Pydantic schemas in `schemas/` to validate requests and responses
-- [ ]  **[stack]** Keep routers thin and put logic in `services/`
+- [ ]  **[stack]** Keep routers thin and put logic in `repositories/` (database) and `services/` (llm, rag, export, cache)
 - [ ]  **[stack]** Add authentication (login, password hashing, token or cookie session) and a `get_current_user` dependency
 - [ ]  **[stack]** Add ownership checks: every conversation query filters by `user_id = current_user.id`
 - [ ]  **[stack]** Add a `GET /api/health` endpoint (used by Uptime Kuma later)

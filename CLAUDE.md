@@ -22,6 +22,7 @@ RAG project. Remote: https://github.com/MMykka/RAG.git (branch: main)
 ## Setup
 - Git: `origin` is the remote above, branch `main`. `.env`, `.venv/`, `node_modules/`, `__pycache__/` are gitignored.
 - Backend: Python 3.12 venv at `backend/.venv`, packages in `backend/requirements.txt` (fastapi, uvicorn, sqlalchemy, alembic, psycopg2-binary, pgvector, ollama, pytest). Run Alembic from `backend/`.
+- FastAPI app: `backend/app/main.py` includes the conversations router (`/api/conversations`); database logic in `app/repositories/conversations.py` (user's choice: `repositories/` holds DB code, `services/` stays for llm/rag/export/cache), schemas in `app/schemas/conversations.py`.
 - Frontend: Vite + React scaffold in `frontend/` (`npm install` not run on this PC yet).
 - Database: Supabase Postgres, reached through the Session pooler string in root `.env` as `DATABASE_URL_DIRECT` (IPv4 network, so the direct host does not work). Tables `users`, `conversations`, `messages` exist; Alembic is at `2e87aeab9ed0 (head)`; pgvector is enabled.
 - Ollama 0.21.0 is installed on this PC with models `llama3.2:latest` (chat) and `nomic-embed-text:latest` (embeddings, 768 dimensions), served at `http://localhost:11434`.
@@ -29,8 +30,9 @@ RAG project. Remote: https://github.com/MMykka/RAG.git (branch: main)
 - `README.md` documents new-PC setup and the Alembic workflow.
 
 ## Current Progress
-- Done: `RAG_TODO.md` Day 0 (all items) and Week 1 Days 1-2 (Database Schema).
-- Next: Week 1 Days 3-4, Backend APIs (waiting for user approval to start).
+- Done: `RAG_TODO.md` Day 0 (all items), Week 1 Days 1-2 (Database Schema), and Days 3-4 `POST /api/conversations` (request body carries `user_id` until `get_current_user` exists).
+- Next: Days 3-4 `GET /api/conversations` with pagination (waiting for user approval to start).
+- Note: the `users` table is still empty; a test user row is needed before calling the endpoint against the real DB.
 
 ## Change Log
 ### 2026-11-09
@@ -178,3 +180,12 @@ RAG project. Remote: https://github.com/MMykka/RAG.git (branch: main)
 
 ### 2026-11-10 (commit: POST /api/conversations)
 - Committed and pushed to `origin/main`: `app/main.py`, `app/routers/conversations.py`, new `app/schemas/conversations.py` and `app/services/conversations.py`, whitespace-only change in `app/models/conversations.py`, `RAG_TODO.md` (POST ticked), `CLAUDE.md`. Pre-push check: `.env`, `.venv/`, `__pycache__/` ignored; the Supabase password is in no committed file.
+
+### 2026-11-10 (CLAUDE.md check)
+- User asked to check `CLAUDE.md`. Compared it with `RAG_TODO.md` and git: Current Progress was stale (still said Days 3-4 had not started). Updated Current Progress (POST done, next is GET with pagination, `users` table empty) and added the FastAPI app line to Setup. Files: `CLAUDE.md`.
+
+### 2026-11-10 (repositories folder)
+- User decided to add a `repositories/` layer (their plan, deviation from the `RAG_Tech_Stack.md` layout is deliberate): database code goes in `app/repositories/`, `services/` stays for llm, rag, export, cache. Do not move it back.
+- At the user's request Claude created `backend/app/repositories/__init__.py`, moved `app/services/conversations.py` to `app/repositories/conversations.py` with `git mv`, and changed the import (and comment) in `app/routers/conversations.py`.
+- Re-tested `POST /api/conversations` in a rolled-back transaction: with title -> 201 "My chat", without -> 201 "New chat", empty body -> 422. DB unchanged. Not committed yet. `RAG_Tech_Stack.md` not updated (pending user's answer).
+- Plan files updated at the user's request: `RAG_Tech_Stack.md` layout now lists `repositories/` and the pattern line reads routers -> repositories -> models (database) and routers -> services (llm, rag, export, cache); `RAG_TODO.md` "Keep routers thin" item now names `repositories/` and `services/` (still unticked).
