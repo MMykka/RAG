@@ -42,7 +42,7 @@ Items tagged **[stack]** were added to match the chosen tech stack (React + Vite
 
 - [x]  `POST /api/conversations`: create new chat
 - [x]  `GET /api/conversations`: list user’s chats (with pagination)
-- [ ]  `GET /api/conversations/:id`: fetch one conversation + all messages
+- [x]  `GET /api/conversations/:id`: fetch one conversation + all messages
 - [ ]  `POST /api/conversations/:id/messages`: save new message (user sends, store response)
 - [ ]  `DELETE /api/conversations/:id`: delete chat
 - [ ]  Test each endpoint with curl or Postman before frontend integration

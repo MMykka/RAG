@@ -20,4 +20,18 @@ class ConversationOut(BaseModel):
         "from_attributes": True
     }
     
+class MessageOut(BaseModel):
+    id: int
+    role: str
+    content: str
+    tokens_used: int | None
+    created_at: datetime
+
+    model_config = {
+        "from_attributes": True
+    }
+    
+class ConversationWithMessages(ConversationOut):
+    messages: list[MessageOut]
+    
 

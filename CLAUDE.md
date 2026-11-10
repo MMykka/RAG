@@ -30,8 +30,8 @@ RAG project. Remote: https://github.com/MMykka/RAG.git (branch: main)
 - `README.md` documents new-PC setup and the Alembic workflow.
 
 ## Current Progress
-- Done: `RAG_TODO.md` Day 0 (all items), Week 1 Days 1-2 (Database Schema), and Days 3-4 `POST /api/conversations` and `GET /api/conversations` (paginated, newest `updated_at` first). Both take `user_id` from the request until `get_current_user` exists.
-- Next: Days 3-4 `GET /api/conversations/:id`: fetch one conversation + all messages (waiting for user approval to start).
+- Done: `RAG_TODO.md` Day 0 (all items), Week 1 Days 1-2 (Database Schema), and Days 3-4 `POST /api/conversations`, `GET /api/conversations` (paginated, newest `updated_at` first) and `GET /api/conversations/:id` (one chat + messages in `created_at` order, 404 if missing or not the user's). All take `user_id` from the request until `get_current_user` exists.
+- Next: Days 3-4 `POST /api/conversations/:id/messages`: save new message (waiting for user approval to start).
 - Note: the `users` table is still empty; a test user row is needed before calling the endpoint against the real DB.
 
 ## Change Log
@@ -206,3 +206,12 @@ RAG project. Remote: https://github.com/MMykka/RAG.git (branch: main)
 
 ### 2026-11-10 (commit: GET /api/conversations)
 - Committed and pushed to `origin/main` at the user's request: `app/repositories/conversations.py` (`get_conversations`), `app/routers/conversations.py` (`get_chats`), `app/schemas/conversations.py` (whitespace only), `RAG_TODO.md` (GET ticked), `CLAUDE.md`. Pre-push check: `.env`, `.venv/`, `__pycache__/` ignored and untracked; the Supabase password is in no staged change.
+
+### 2026-11-10 (Week 1 Days 3-4: GET /api/conversations/:id, in progress)
+- User wrote `get_chat_by_id` in `app/repositories/conversations.py` (filters by `user_id` and `id`, `.first()`) and a `GET /{conversation_id}` endpoint in `app/routers/conversations.py`. Check: router function has the same name as the repository function and it is not imported -> `RecursionError` (confirmed). Also missing: messages in the response (needs `MessageOut` + a detail schema with `messages`), 404 when not found (`None` would give a 500), `-> Conversation | None` hint, message ordering by `created_at`. Fixes pending (user). No code changed by Claude.
+- Re-check of GET `/:id`: name clash fixed (endpoint `get_chat_id`, repo function imported); schemas `messageOut` and `ConversationWithMessages(ConversationOut)` added. Still wrong (confirmed with a chat holding 1 message): `messages=[]` hard-coded so messages never show; wrong id -> 500 because `HTTPException` is imported from `http.client` (stdlib) instead of `fastapi`, and the 404 belongs in the router; `messageOut.token_used` should be `tokens_used` (model name); repository should return the model, not build a schema; `order_by` on the `messages` relationship not added. Nit: `messageOut` -> `MessageOut`. Fixes pending (user).
+- GET `/:id` complete: repository returns the model (`-> Conversation | None`) and raises FastAPI's `HTTPException(404)`; `messageOut.tokens_used` fixed; `order_by="Message.created_at"` added to `Conversation.messages` in `app/models/conversations.py` (Python-side only, no migration). Tested in a rolled-back transaction: messages returned in `created_at` order (inserted out of order), `tokens_used` shown, empty chat -> `[]`, wrong id and other user's chat -> 404, missing `user_id` / non-number id -> 422; list and POST still work. Ticked in `RAG_TODO.md`. Open suggestions (optional): move the 404 from the repository to the router; rename `messageOut` -> `MessageOut`. Not committed yet.
+- Cleanups checked: `messageOut` renamed to `MessageOut` (both places). The 404 is still raised in the repository (optional move to the router not done; works as is). Re-test passed (messages in order, empty chat, wrong id / other user -> 404, list, POST).
+
+### 2026-11-10 (commit: GET /api/conversations/:id)
+- Committed and pushed to `origin/main` at the user's request: `app/models/conversations.py` (`order_by` on `messages`), `app/repositories/conversations.py` (`get_chat_by_id`), `app/routers/conversations.py` (`get_chat_id`), `app/schemas/conversations.py` (`MessageOut`, `ConversationWithMessages`), `RAG_TODO.md` (ticked), `CLAUDE.md`. Pre-push check: `.env`, `.venv/`, `__pycache__/` ignored and untracked; the Supabase password is in no staged change.
