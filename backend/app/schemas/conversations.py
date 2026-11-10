@@ -19,3 +19,5 @@ class ConversationOut(BaseModel):
     model_config = {
         "from_attributes": True
     }
+    
+

@@ -41,7 +41,7 @@ Items tagged **[stack]** were added to match the chosen tech stack (React + Vite
 ### Days 3-4: Backend APIs
 
 - [x]  `POST /api/conversations`: create new chat
-- [ ]  `GET /api/conversations`: list user’s chats (with pagination)
+- [x]  `GET /api/conversations`: list user’s chats (with pagination)
 - [ ]  `GET /api/conversations/:id`: fetch one conversation + all messages
 - [ ]  `POST /api/conversations/:id/messages`: save new message (user sends, store response)
 - [ ]  `DELETE /api/conversations/:id`: delete chat

@@ -30,8 +30,8 @@ RAG project. Remote: https://github.com/MMykka/RAG.git (branch: main)
 - `README.md` documents new-PC setup and the Alembic workflow.
 
 ## Current Progress
-- Done: `RAG_TODO.md` Day 0 (all items), Week 1 Days 1-2 (Database Schema), and Days 3-4 `POST /api/conversations` (request body carries `user_id` until `get_current_user` exists).
-- Next: Days 3-4 `GET /api/conversations` with pagination (waiting for user approval to start).
+- Done: `RAG_TODO.md` Day 0 (all items), Week 1 Days 1-2 (Database Schema), and Days 3-4 `POST /api/conversations` and `GET /api/conversations` (paginated, newest `updated_at` first). Both take `user_id` from the request until `get_current_user` exists.
+- Next: Days 3-4 `GET /api/conversations/:id`: fetch one conversation + all messages (waiting for user approval to start).
 - Note: the `users` table is still empty; a test user row is needed before calling the endpoint against the real DB.
 
 ## Change Log
@@ -189,3 +189,20 @@ RAG project. Remote: https://github.com/MMykka/RAG.git (branch: main)
 - At the user's request Claude created `backend/app/repositories/__init__.py`, moved `app/services/conversations.py` to `app/repositories/conversations.py` with `git mv`, and changed the import (and comment) in `app/routers/conversations.py`.
 - Re-tested `POST /api/conversations` in a rolled-back transaction: with title -> 201 "My chat", without -> 201 "New chat", empty body -> 422. DB unchanged. Not committed yet. `RAG_Tech_Stack.md` not updated (pending user's answer).
 - Plan files updated at the user's request: `RAG_Tech_Stack.md` layout now lists `repositories/` and the pattern line reads routers -> repositories -> models (database) and routers -> services (llm, rag, export, cache); `RAG_TODO.md` "Keep routers thin" item now names `repositories/` and `services/` (still unticked).
+
+### 2026-11-10 (commit: repositories layer)
+- Committed `f6f2f53` ("Move conversation DB logic to repositories/ and update plan docs") and pushed to `origin/main`. Pre-push check: `.env` and `backend/.venv` ignored and untracked; the Supabase password is in no staged change.
+
+### 2026-11-10 (Week 1 Days 3-4: GET /api/conversations, in progress)
+- User approved ("continue") the step `GET /api/conversations: list user's chats (with pagination)`. Agreed design: query params `user_id` (temporary until `get_current_user`), `limit` (`Query(20, ge=1, le=100)`), `offset` (`Query(0, ge=0)`); ordered by `updated_at` desc; returns `list[ConversationOut]`.
+- Guidance given; the user writes `list_conversations` in `app/repositories/conversations.py` and the GET endpoint in `app/routers/conversations.py`. No code changed by Claude.
+- Check of the user's GET code: repository `get_conversations(db, user_id)` uses `db.query(...).filter(...).all()` (works, legacy style). Router: endpoint function is also named `get_conversations` and the repository function is not imported, so the endpoint calls itself -> `RecursionError` (confirmed with TestClient in a rolled-back transaction). Also missing: `limit`/`offset` pagination and `updated_at` desc ordering. Fixes pending (user). No code changed by Claude.
+- Re-check of GET: import and name clash fixed (endpoint now `getChats`), repository takes `limit`/`offset`. Still broken: router calls `.order_by(ConversationOut.created_at.desc())` on the list returned by `.all()` -> `AttributeError` (confirmed); it also uses the Pydantic schema instead of the model, and ordering belongs in the repository query. `Query(20, ge=11, ...)` typo makes `limit=5` return 422 (confirmed). Nit: `getChats` camelCase. Fixes pending (user).
+- Re-check 2 of GET: endpoint renamed `get_chats`, ordering switched to `updated_at`, repository now `.limit().offset()`. Still not fixed: `.order_by(ConversationOut...)` still in the router on the list -> `AttributeError`; `ge=11` still -> `limit=5` gives 422 (both confirmed). Fixes pending (user).
+- Re-check 3 of GET: router fixed (`ge=1`, plain `return get_conversations(...)`); validation works (limit=0/101, offset=-1, missing user_id -> 422). Repository calls `.order_by(...)` after `.limit().offset()`, which SQLAlchemy's legacy Query rejects (`InvalidRequestError`, confirmed). Fix pending (user): move `.order_by` before `.limit`.
+- GET complete: user moved `.order_by(Conversation.updated_at.desc())` before `.limit().offset()` in `app/repositories/conversations.py`. Tested in a rolled-back transaction (2 temp users, 5 chats + 1 other-user chat): newest first, `limit=2` and pages via `offset` correct, other user's chat hidden, unknown user -> `[]`, `limit=0`/`101`, `offset=-1`, missing `user_id` -> 422; POST still 201. Ticked `GET /api/conversations` in `RAG_TODO.md`. Not committed yet.
+- Explained to the user: `->` return type hints, model (`Conversation`) vs schema (`ConversationOut`). User added then removed an unused `ConversationsListOut` wrapper schema (kept bare `list[ConversationOut]`; no pagination metadata needed).
+- Pre-commit re-test passed (newest first, pagination, user isolation, `limit=0` -> 422, POST 201); `import app.main` ok.
+
+### 2026-11-10 (commit: GET /api/conversations)
+- Committed and pushed to `origin/main` at the user's request: `app/repositories/conversations.py` (`get_conversations`), `app/routers/conversations.py` (`get_chats`), `app/schemas/conversations.py` (whitespace only), `RAG_TODO.md` (GET ticked), `CLAUDE.md`. Pre-push check: `.env`, `.venv/`, `__pycache__/` ignored and untracked; the Supabase password is in no staged change.
