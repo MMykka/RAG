@@ -4,7 +4,7 @@ from sqlalchemy.orm import Session
 from fastapi import Depends
 from app.database import get_db
 from app.schemas.conversations import ConversationCreate, ConversationOut, ConversationWithMessages, MessageCreate, MessageOut
-from app.repositories.conversations import create_conversation, get_chat_by_id, get_conversations, save_message
+from app.repositories.conversations import create_conversation, delete_chat, get_chat_by_id, get_conversations, save_message
 
 
 router = APIRouter(prefix="/api/conversations", tags=["conversations"])
@@ -35,3 +35,11 @@ def save_message_to_chat(conversation_id:int, user_id:int, data: MessageCreate, 
         raise HTTPException(status_code=404, detail="Conversation not found")
     message = save_message(db, conversation, data)
     return message
+
+@router.delete("/{conversation_id}", status_code=204)
+def delete(conversation_id:int, user_id:int, db: Session = Depends(get_db)):
+    conversation = get_chat_by_id(db, user_id, conversation_id)
+    if conversation is None:
+        raise HTTPException(status_code=404, detail="Conversation not found")
+    delete_chat(db, conversation)
+    return None

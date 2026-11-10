@@ -22,7 +22,7 @@ RAG project. Remote: https://github.com/MMykka/RAG.git (branch: main)
 ## Setup
 - Git: `origin` is the remote above, branch `main`. `.env`, `.venv/`, `node_modules/`, `__pycache__/` are gitignored.
 - Backend: Python 3.12 venv at `backend/.venv`, packages in `backend/requirements.txt` (fastapi, uvicorn, sqlalchemy, alembic, psycopg2-binary, pgvector, ollama, pytest). Run Alembic from `backend/`.
-- FastAPI app: `backend/app/main.py` includes the conversations router (`/api/conversations`); database logic in `app/repositories/conversations.py` (user's choice: `repositories/` holds DB code, `services/` stays for llm/rag/export/cache), schemas in `app/schemas/conversations.py`.
+- FastAPI app: `backend/app/main.py` includes one router per feature: `auth` (`/api/auth`), `conversations` (`/api/conversations`, the only one with endpoints so far), `stream` (`/api/stream`), `export` (no prefix yet), `stats` (`/api/users`); database logic in `app/repositories/conversations.py` (user's choice: `repositories/` holds DB code, `services/` stays for llm/rag/export/cache), schemas in `app/schemas/conversations.py`.
 - Frontend: Vite + React scaffold in `frontend/` (`npm install` not run on this PC yet).
 - Database: Supabase Postgres, reached through the Session pooler string in root `.env` as `DATABASE_URL_DIRECT` (IPv4 network, so the direct host does not work). Tables `users`, `conversations`, `messages` exist; Alembic is at `2e87aeab9ed0 (head)`; pgvector is enabled.
 - Ollama 0.21.0 is installed on this PC with models `llama3.2:latest` (chat) and `nomic-embed-text:latest` (embeddings, 768 dimensions), served at `http://localhost:11434`.
@@ -30,8 +30,9 @@ RAG project. Remote: https://github.com/MMykka/RAG.git (branch: main)
 - `README.md` documents new-PC setup and the Alembic workflow.
 
 ## Current Progress
-- Done: `RAG_TODO.md` Day 0 (all items), Week 1 Days 1-2 (Database Schema), and Days 3-4 `POST /api/conversations`, `GET /api/conversations` (paginated, newest `updated_at` first) and `GET /api/conversations/:id` (one chat + messages in `created_at` order, 404 if missing or not the user's) and `POST /api/conversations/:id/messages` (saves a user/assistant message, bumps the chat's `updated_at`). All take `user_id` from the request until `get_current_user` exists.
-- Next: Days 3-4 `DELETE /api/conversations/:id`: delete chat (waiting for user approval to start).
+- Done: `RAG_TODO.md` Day 0 (all items), Week 1 Days 1-2 (Database Schema), and Days 3-4 `POST /api/conversations`, `GET /api/conversations` (paginated, newest `updated_at` first) and `GET /api/conversations/:id` (one chat + messages in `created_at` order, 404 if missing or not the user's) and `POST /api/conversations/:id/messages` (saves a user/assistant message, bumps the chat's `updated_at`) and `DELETE /api/conversations/:id` (204, messages cascade). All take `user_id` from the request until `get_current_user` exists.
+- Also done: `[stack] Create the FastAPI app (main.py) and one router per feature`. Skipped for now (user's choice, no Postman here): `Test each endpoint with curl or Postman`.
+- Next: Days 3-4 `[stack] Add Pydantic schemas in schemas/ to validate requests and responses` (waiting for user approval to start).
 - Note: the `users` table is still empty; a test user row is needed before calling the endpoint against the real DB.
 
 ## Change Log
@@ -227,3 +228,13 @@ RAG project. Remote: https://github.com/MMykka/RAG.git (branch: main)
 
 ### 2026-11-10 (commit: messages endpoint, 404 in router, message order tie-breaker)
 - Pre-commit smoke test of all four endpoints passed (rolled-back transaction). Committed and pushed to `origin/main` at the user's request: `app/models/conversations.py` (`order_by` tie-breaker), `app/repositories/conversations.py` (`save_message`, `get_chat_by_id` returns None), `app/routers/conversations.py` (404 in router, `save_message_to_chat`), `app/schemas/conversations.py` (`MessageCreate`), `RAG_TODO.md` (messages endpoint ticked), `CLAUDE.md`. Pre-push check: `.env`, `.venv/`, `__pycache__/` ignored and untracked; the Supabase password is in no staged change.
+
+### 2026-11-10 (Week 1 Days 3-4: DELETE /api/conversations/:id)
+- User wrote `delete_chat(db, user_id, conversation)` in `app/repositories/conversations.py` (`db.delete` + commit) and `DELETE /{conversation_id}` (`status_code=204`, ownership check + 404) in `app/routers/conversations.py`. Claude tested in a rolled-back transaction: own chat -> 204 with empty body, GET afterwards -> 404, its messages removed by the cascade, other chat and its messages untouched, deleting again / another user's chat -> 404 (their chat still exists), missing `user_id` -> 422. Ticked in `RAG_TODO.md`. Nits given (optional): `user_id` parameter unused in `delete_chat`; it always returns `True` (could be `-> None`). Not committed yet.
+- DELETE cleanup check: `delete_chat(db, conversation) -> None` (unused `user_id` removed, router call updated). Remaining mismatch: it still ends with `return True` while hinted `-> None`; remove that line (user). Router `return None` is fine.
+- `return True` removed from `delete_chat` (now matches `-> None`). Re-tested in a rolled-back transaction: delete 204, GET after 404, messages cascaded (0 left), delete again 404. Not committed yet.
+
+### 2026-11-10 (Week 1 Days 3-4: router per feature, in progress)
+- User chose to skip `Test each endpoint with curl or Postman before frontend integration` for now (no Postman on this PC); left unticked to come back to. (`curl.exe` ships with Windows 11 if wanted later.)
+- User approved `[stack] Create the FastAPI app (main.py) and one router per feature in routers/`. State: `main.py` exists and includes only `conversations.router`; `routers/auth.py`, `stream.py`, `export.py`, `stats.py` are empty placeholders. Plan given: each empty file gets `router = APIRouter(prefix=..., tags=[...])` (auth `/api/auth`, stream `/api/stream`, stats `/api/users` per `GET /api/users/:id/stats`, export prefix left to its own Week 2 step), and `main.py` includes all five. The user writes it. No code changed by Claude.
+- At the user's request Claude wrote the routers: `app/routers/auth.py` (`prefix="/api/auth"`), `stream.py` (`/api/stream`), `stats.py` (`/api/users`), `export.py` (no prefix, decided in the export step), each with only `router = APIRouter(...)` and a comment; `app/main.py` now imports and includes all five. Verified: app loads, `/docs` 200, OpenAPI lists the conversation routes, all 5 conversation endpoints still pass (201/200/201/200/204, rolled-back transaction). Note: this FastAPI version wraps included routers (`_IncludedRouter`), so inspect routes via `/openapi.json`, not `app.routes[*].path`. Ticked in `RAG_TODO.md`. Not committed yet.

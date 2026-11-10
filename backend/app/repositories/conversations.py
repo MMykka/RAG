@@ -35,3 +35,7 @@ def save_message(db: Session, conversation: Conversation, data: MessageCreate) -
     db.refresh(message)
     return message
     
+    
+def delete_chat(db: Session, conversation: Conversation) -> None:
+    db.delete(conversation)
+    db.commit()

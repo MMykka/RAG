@@ -44,9 +44,9 @@ Items tagged **[stack]** were added to match the chosen tech stack (React + Vite
 - [x]  `GET /api/conversations`: list user’s chats (with pagination)
 - [x]  `GET /api/conversations/:id`: fetch one conversation + all messages
 - [x]  `POST /api/conversations/:id/messages`: save new message (user sends, store response)
-- [ ]  `DELETE /api/conversations/:id`: delete chat
+- [x]  `DELETE /api/conversations/:id`: delete chat
 - [ ]  Test each endpoint with curl or Postman before frontend integration
-- [ ]  **[stack]** Create the FastAPI app (`main.py`) and one router per feature in `routers/`
+- [x]  **[stack]** Create the FastAPI app (`main.py`) and one router per feature in `routers/`
 - [ ]  **[stack]** Add Pydantic schemas in `schemas/` to validate requests and responses
 - [ ]  **[stack]** Keep routers thin and put logic in `repositories/` (database) and `services/` (llm, rag, export, cache)
 - [ ]  **[stack]** Add authentication (login, password hashing, token or cookie session) and a `get_current_user` dependency
