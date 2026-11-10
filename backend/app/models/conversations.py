@@ -20,3 +20,5 @@ class Conversation(Base):
     
     # conversations have many messages
     messages: Mapped[list["Message"]] = relationship("Message", back_populates="conversation", cascade="all, delete-orphan")
+
+    

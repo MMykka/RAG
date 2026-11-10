@@ -165,3 +165,16 @@ RAG project. Remote: https://github.com/MMykka/RAG.git (branch: main)
 
 ### 2026-11-10 (Day 0: Supabase confirmed)
 - User confirmed the company accepts storing chats and documents on Supabase (cloud). The item was already ticked in `RAG_TODO.md`; updated Current Progress in `CLAUDE.md`. Day 0 is now fully complete.
+
+### 2026-11-10 (commit)
+- Set the git identity for this repo only (`git config user.name/user.email`), matching the earlier commits (Myka Work), since none was set on this PC.
+- Committed `CLAUDE.md` and `RAG_TODO.md` (commit `2b077ee`, "Day 0 complete: Ollama verified, Supabase confirmed") and pushed to `origin/main`. Pre-push check: `.env` and `backend/.venv` ignored; the Supabase password is in neither file.
+
+### 2026-11-10 (Week 1 Days 3-4: POST /api/conversations, in progress)
+- Agreed approach: request body carries `user_id` temporarily until the `get_current_user` item; logic goes in a new `services/conversations.py` (not named in the stack layout, needed for the "keep routers thin" item). A test user row is needed in `users` for the FK.
+- User wrote `app/main.py`, `app/routers/conversations.py`, `app/schemas/conversations.py`, `app/services/conversations.py`. Check: `import app.main` fails (`NameError: FastAPI`). Findings given: missing imports in main/router; double prefix in `include_router`; `title: str = None` should be `str | None`; `created_at`/`updated_at` typed `str` (should be `datetime`); `Session` imported from `pytest` (should be `sqlalchemy.orm`); `RAG.backend.app...` import paths; passing `title=None` sends NULL and breaks the `"New chat"` default. Fixes pending (user).
+- Re-check: imports, prefix, `datetime` types and `Session` import fixed; `import app.main` ok. Tested `POST /api/conversations` via TestClient inside a rolled-back transaction (temp user): with a title -> 201 "My chat"; without -> 201 "New chat". Correction: the `title=None` finding was wrong (SQLAlchemy omits None, so the server default applies). Remaining nit: `ConversationCreate.title` is still `str = None` (the `str | None` fix went to `ConversationOut`, which can be plain `str`). DB unchanged; `users` is empty (test user not created yet). Bash sandbox could not resolve the Supabase host; PowerShell connects fine.
+- Schema nit fixed by the user (`ConversationCreate.title: str | None = None`, `ConversationOut.title: str`). Re-tested in a rolled-back transaction: with title -> 201, without -> 201 "New chat", missing `user_id` -> 422. Ticked `POST /api/conversations` in `RAG_TODO.md`. Next: `GET /api/conversations` (pagination).
+
+### 2026-11-10 (commit: POST /api/conversations)
+- Committed and pushed to `origin/main`: `app/main.py`, `app/routers/conversations.py`, new `app/schemas/conversations.py` and `app/services/conversations.py`, whitespace-only change in `app/models/conversations.py`, `RAG_TODO.md` (POST ticked), `CLAUDE.md`. Pre-push check: `.env`, `.venv/`, `__pycache__/` ignored; the Supabase password is in no committed file.
