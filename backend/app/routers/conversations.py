@@ -1,10 +1,10 @@
 
-from fastapi import APIRouter, Query
+from fastapi import APIRouter, HTTPException, Query
 from sqlalchemy.orm import Session
 from fastapi import Depends
 from app.database import get_db
-from app.schemas.conversations import ConversationCreate, ConversationOut, ConversationWithMessages
-from app.repositories.conversations import create_conversation, get_chat_by_id, get_conversations
+from app.schemas.conversations import ConversationCreate, ConversationOut, ConversationWithMessages, MessageCreate, MessageOut
+from app.repositories.conversations import create_conversation, get_chat_by_id, get_conversations, save_message
 
 
 router = APIRouter(prefix="/api/conversations", tags=["conversations"])
@@ -22,4 +22,16 @@ def get_chats(user_id: int, db: Session = Depends(get_db), limit: int = Query(20
 
 @router.get("/{conversation_id}", response_model=ConversationWithMessages)
 def get_chat_id(conversation_id: int, user_id: int, db: Session = Depends(get_db)):
-    return get_chat_by_id(db, user_id, conversation_id)
+    conversation = get_chat_by_id(db, user_id, conversation_id)
+    if conversation is None:
+        raise HTTPException(status_code=404, detail="Conversation not found")
+    return conversation
+
+#save new message to a conversation
+@router.post("/{conversation_id}/messages", response_model=MessageOut, status_code=201)
+def save_message_to_chat(conversation_id:int, user_id:int, data: MessageCreate, db: Session = Depends(get_db)):
+    conversation = get_chat_by_id(db, user_id, conversation_id)
+    if conversation is None:
+        raise HTTPException(status_code=404, detail="Conversation not found")
+    message = save_message(db, conversation, data)
+    return message

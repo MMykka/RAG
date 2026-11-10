@@ -1,4 +1,6 @@
 # Conversation schemas
+from typing import Literal
+
 from pydantic import BaseModel
 from datetime import datetime
 
@@ -19,6 +21,14 @@ class ConversationOut(BaseModel):
     model_config = {
         "from_attributes": True
     }
+    
+    
+
+class MessageCreate(BaseModel):
+    role: Literal["user", "assistant"]
+    content: str
+    tokens_used: int | None = None
+
     
 class MessageOut(BaseModel):
     id: int
