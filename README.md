@@ -54,6 +54,19 @@ DATABASE_URL_DIRECT=postgresql://postgres.<project-ref>:<your-password>@aws-0-<r
 - Use the **Session pooler** string from Supabase (Connect button). The direct host (`db.<ref>.supabase.co`) is IPv6-only and fails on IPv4 networks.
 - Keep the variable name `DATABASE_URL_DIRECT`. If the password has special characters, URL-encode them.
 
+Then set a new secret key for signing login tokens (the app refuses to start without one). Generate it from `backend/` and paste it into `.env`:
+
+```powershell
+.venv\Scripts\python.exe -c "import secrets; print(secrets.token_hex(32))"
+```
+
+```
+SECRET_KEY=<the generated value>
+COOKIE_SECURE=false
+```
+
+`COOKIE_SECURE=false` is for plain `http://localhost`. On the HTTPS server set it to `true`.
+
 ### 4. Frontend
 
 ```powershell
@@ -72,6 +85,29 @@ cd backend
 It should print `2e87aeab9ed0 (head)`, which means the connection works and the tables already exist.
 
 In VS Code, select `backend\.venv\Scripts\python.exe` as the interpreter (Ctrl+Shift+P, then Python: Select Interpreter).
+
+## Run the backend
+
+From `backend/`:
+
+```powershell
+.venv\Scripts\uvicorn.exe app.main:app --reload
+```
+
+- API docs with "Try it out": http://localhost:8000/docs
+- Health check: http://localhost:8000/api/health (200 when the app and database work, 503 when the database is unreachable)
+
+Login is a JWT in an httpOnly cookie (`access_token`, 60 minutes). Register with `POST /api/auth/register`, log in with `POST /api/auth/login`; the browser (or `/docs`, or Postman) then sends the cookie automatically. All `/api/conversations` endpoints need that login and only ever show the logged-in user's own chats.
+
+## Run the tests
+
+From `backend/`:
+
+```powershell
+.venv\Scripts\pytest.exe -v
+```
+
+The tests run against the real Supabase database, but each test runs inside a transaction that is rolled back, so nothing is left behind. They need internet and a filled-in `.env`, and take a few minutes.
 
 ## Database migrations (Alembic)
 
@@ -105,7 +141,7 @@ Rules:
 
 ## Database schema
 
-- `users` (id, username, email, password_hash, created_at, updated_at)
+- `users` (id, username, email, password_hash, created_at, updated_at): passwords are stored only as Argon2 hashes
 - `conversations` (id, user_id, title, created_at, updated_at): one user has many conversations
 - `messages` (id, conversation_id, role, content, tokens_used, created_at): one conversation has many messages
 
@@ -114,6 +150,6 @@ The pgvector extension is enabled in Supabase for the RAG step.
 
 ## Status
 
-Done: project setup, database schema, Alembic, pgvector.
-Next: backend APIs (Week 1, Days 3-4). Not installed yet: Ollama and Docker.
+Done: project setup, database schema, Alembic, pgvector, backend APIs (Week 1, Days 3-4): conversations and messages endpoints, JWT cookie authentication with ownership checks, health endpoint, pytest suite (27 tests).
+Next: frontend UI (Week 1, Day 5). Not installed yet: Docker.
 See [RAG_TODO.md](RAG_TODO.md) for the full checklist.

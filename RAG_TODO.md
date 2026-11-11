@@ -51,9 +51,9 @@ Items tagged **[stack]** were added to match the chosen tech stack (React + Vite
 - [x]  **[stack]** Keep routers thin and put logic in `repositories/` (database) and `services/` (llm, rag, export, cache)
 - [x]  **[stack]** Add authentication (login, password hashing, token or cookie session) and a `get_current_user` dependency
 - [x]  **[stack]** Add ownership checks: every conversation query filters by `user_id = current_user.id`
-- [ ]  **[stack]** Add a `GET /api/health` endpoint (used by Uptime Kuma later)
+- [x]  **[stack]** Add a `GET /api/health` endpoint (used by Uptime Kuma later)
 - [ ]  **[stack]** Add CORS middleware for `http://localhost:5173` (or use the Vite proxy)
-- [ ]  **[stack]** Write `pytest` tests for each endpoint with a `conftest.py` fixture
+- [x]  **[stack]** Write `pytest` tests for each endpoint with a `conftest.py` fixture
 
 ### Day 5: Frontend UI
 
