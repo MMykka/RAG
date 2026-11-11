@@ -8,9 +8,9 @@ from app.models.messages import Message
 
 
 # function to create a new conversation
-def create_conversation(db: Session, data: ConversationCreate) -> Conversation:
+def create_conversation(db: Session, data: ConversationCreate, user_id: int) -> Conversation:
 
-    conversation = Conversation(user_id=data.user_id, title=data.title)
+    conversation = Conversation(user_id=user_id, title=data.title)
     db.add(conversation)
     db.commit()
     db.refresh(conversation)

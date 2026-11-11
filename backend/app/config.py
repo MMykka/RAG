@@ -32,6 +32,16 @@ class Settings:
     database_url_direct: str = _psycopg2(os.environ.get("DATABASE_URL_DIRECT", ""))
     # Pooler connection (port 6543): used by the running app. Falls back to the direct URL until it is added.
     database_url: str = _psycopg2(os.environ.get("DATABASE_URL", "")) or database_url_direct
+    
+    secret_key: str = os.environ.get("SECRET_KEY", "")
+    jwt_algorithm: str = "HS256"
+    access_token_expire_minutes: int = 60
+    # Secure cookie = sent only over HTTPS. Off on this PC (plain http://localhost), set COOKIE_SECURE=true on the server at go-live.
+    cookie_secure: bool = os.environ.get("COOKIE_SECURE", "false").lower() == "true"
+
 
 
 settings = Settings()
+if not settings.secret_key:
+    raise RuntimeError("SECRET_KEY is missing from .env")
+

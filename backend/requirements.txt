@@ -6,3 +6,5 @@ psycopg2-binary
 pgvector
 ollama
 pytest
+PyJWT
+pwdlib[argon2]
