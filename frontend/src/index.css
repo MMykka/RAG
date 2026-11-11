@@ -31,6 +31,32 @@
   color: var(--text);
   background: var(--bg);
   -webkit-font-smoothing: antialiased;
+  color-scheme: dark; /* tells the browser to draw its own controls dark too */
+}
+
+/* Scrollbars: thin and dark everywhere (chat list, messages, documents),
+   instead of the browser's default bright one */
+* {
+  scrollbar-width: thin; /* Firefox, Chrome, Edge */
+  scrollbar-color: #2e2e2e transparent; /* thumb colour, track colour */
+}
+
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #2e2e2e;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #444;
 }
 
 /* ---------- 2. Base ---------- */
