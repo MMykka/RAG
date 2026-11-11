@@ -52,27 +52,27 @@ Items tagged **[stack]** were added to match the chosen tech stack (React + Vite
 - [x]  **[stack]** Add authentication (login, password hashing, token or cookie session) and a `get_current_user` dependency
 - [x]  **[stack]** Add ownership checks: every conversation query filters by `user_id = current_user.id`
 - [x]  **[stack]** Add a `GET /api/health` endpoint (used by Uptime Kuma later)
-- [ ]  **[stack]** Add CORS middleware for `http://localhost:5173` (or use the Vite proxy)
+- [x]  **[stack]** Add CORS middleware for `http://localhost:5173` (or use the Vite proxy)
 - [x]  **[stack]** Write `pytest` tests for each endpoint with a `conftest.py` fixture
 
 ### Day 5: Frontend UI
 
-- [ ]  Sidebar listing past conversations (timestamps, truncated titles)
-- [ ]  Click a conversation to load it and display all messages
-- [ ]  New chat button clears the UI and creates a fresh conversation
-- [ ]  Delete button with confirmation
-- [ ]  **[stack]** Set up the Vite proxy so React calls `/api/...` with no hardcoded host
-- [ ]  **[stack]** Put all fetch calls in `src/api/` (`client.js`, `conversations.js`)
-- [ ]  **[stack]** Build components: `Sidebar`, `ChatWindow`, `MessageBubble`
-- [ ]  **[stack]** Add a login page and attach the auth token to API requests
+- [x]  Sidebar listing past conversations (timestamps, truncated titles)
+- [x]  Click a conversation to load it and display all messages
+- [x]  New chat button clears the UI and creates a fresh conversation
+- [x]  Delete button with confirmation
+- [x]  **[stack]** Set up the Vite proxy so React calls `/api/...` with no hardcoded host
+- [x]  **[stack]** Put all fetch calls in `src/api/` (`client.js`, `conversations.js`)
+- [x]  **[stack]** Build components: `Sidebar`, `ChatWindow`, `MessageBubble`
+- [x]  **[stack]** Add a login page and attach the auth token to API requests
 
 ### Week 1 Deliverables
 
-- [ ]  Database migrations (working schema with all tables and indexes)
-- [ ]  5 passing API endpoints
-- [ ]  Frontend loads and displays past conversations
-- [ ]  **[stack]** Alembic migrations apply cleanly to Supabase with `alembic upgrade head`
-- [ ]  **[stack]** `pytest` suite passing for all 5 endpoints
+- [x]  Database migrations (working schema with all tables and indexes)
+- [x]  5 passing API endpoints
+- [x]  Frontend loads and displays past conversations
+- [x]  **[stack]** Alembic migrations apply cleanly to Supabase with `alembic upgrade head`
+- [x]  **[stack]** `pytest` suite passing for all 5 endpoints
 
 ---
 

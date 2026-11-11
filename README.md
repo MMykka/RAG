@@ -99,6 +99,23 @@ From `backend/`:
 
 Login is a JWT in an httpOnly cookie (`access_token`, 60 minutes). Register with `POST /api/auth/register`, log in with `POST /api/auth/login`; the browser (or `/docs`, or Postman) then sends the cookie automatically. All `/api/conversations` endpoints need that login and only ever show the logged-in user's own chats.
 
+## Run the frontend
+
+Start the backend first (above), then from `frontend/`:
+
+```powershell
+npm run dev
+```
+
+Open http://localhost:5173, create an account on the login page (or log in), and chat.
+
+- The Vite proxy (`frontend/vite.config.js`) forwards every `/api/...` call to `http://localhost:8000`, so the browser sees one origin and the login cookie just works. No CORS setup is needed.
+- `src/api/`: all fetch calls (`client.js` shared helper + health, `auth.js`, `conversations.js`).
+- `src/components/`: `Sidebar`, `ChatWindow`, `MessageBubble`, `Icons` (inline SVGs).
+- `src/pages/`: `LoginPage`, `ChatPage` (holds the state, calls the API), `DocumentsPage` (upload panel; layout only until Week 2).
+- Styles: `src/index.css` (colours at the top as CSS variables).
+- Check the code: `npm run lint`; production build: `npm run build`.
+
 ## Run the tests
 
 From `backend/`:
@@ -150,6 +167,6 @@ The pgvector extension is enabled in Supabase for the RAG step.
 
 ## Status
 
-Done: project setup, database schema, Alembic, pgvector, backend APIs (Week 1, Days 3-4): conversations and messages endpoints, JWT cookie authentication with ownership checks, health endpoint, pytest suite (27 tests).
-Next: frontend UI (Week 1, Day 5). Not installed yet: Docker.
+Done: project setup, database schema, Alembic, pgvector, backend APIs (Week 1, Days 3-4): conversations and messages endpoints, JWT cookie authentication with ownership checks, health endpoint, pytest suite (27 tests). Frontend UI (Week 1, Day 5): login page, sidebar with past chats, chat window, new chat, delete with confirmation, Documents page layout, Vite proxy.
+Next: Week 2 (streaming backend; AI answers and document upload come then). Not installed yet: Docker.
 See [RAG_TODO.md](RAG_TODO.md) for the full checklist.
