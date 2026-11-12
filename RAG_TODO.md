@@ -80,9 +80,9 @@ Items tagged **[stack]** were added to match the chosen tech stack (React + Vite
 
 ### Days 1-2: Streaming Backend
 
-- [ ]  Research how the Llama backend works (native streaming support?)
-- [ ]  Modify Llama inference to stream tokens instead of waiting for the full response
-- [ ]  Create `POST /api/stream` (SSE) that accepts a message and returns a chunked response
+- [x]  Research how the Llama backend works (native streaming support?)
+- [x]  Modify Llama inference to stream tokens instead of waiting for the full response
+- [x]  Create `POST /api/stream` (SSE) that accepts a message and returns a chunked response
 - [ ]  Each chunk includes: token content, cumulative text, completion percentage
 - [ ]  Save the full message to the database after the stream completes
 - [ ]  Mock the Llama backend for testing if needed

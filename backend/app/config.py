@@ -39,6 +39,10 @@ class Settings:
     # Secure cookie = sent only over HTTPS. Off on this PC (plain http://localhost), set COOKIE_SECURE=true on the server at go-live.
     cookie_secure: bool = os.environ.get("COOKIE_SECURE", "false").lower() == "true"
 
+    ollama_host: str = os.environ.get("OLLAMA_HOST", "http://localhost:11434")
+    ollama_model: str = os.environ.get("OLLAMA_MODEL", "llama3.2")
+
+
 
 
 settings = Settings()

@@ -67,6 +67,8 @@ COOKIE_SECURE=false
 
 `COOKIE_SECURE=false` is for plain `http://localhost`. On the HTTPS server set it to `true`.
 
+Optional: `OLLAMA_HOST` (default `http://localhost:11434`) and `OLLAMA_MODEL` (default `llama3.2`). Leave them out on a normal PC; set them when Ollama runs elsewhere (e.g. in Docker).
+
 ### 4. Frontend
 
 ```powershell
@@ -98,6 +100,8 @@ From `backend/`:
 - Health check: http://localhost:8000/api/health (200 when the app and database work, 503 when the database is unreachable)
 
 Login is a JWT in an httpOnly cookie (`access_token`, 60 minutes). Register with `POST /api/auth/register`, log in with `POST /api/auth/login`; the browser (or `/docs`, or Postman) then sends the cookie automatically. All `/api/conversations` endpoints need that login and only ever show the logged-in user's own chats.
+
+AI answers: `POST /api/stream` with `{"conversation_id": ..., "content": "..."}` streams Llama's answer as Server-Sent Events (`data: {"token": "..."}` per piece, then `data: {"done": true}`). Ollama must be running first (start the Ollama app or `ollama serve`). `app/services/llm.py` talks to Ollama; `app/routers/stream.py` turns the pieces into SSE.
 
 ## Run the frontend
 
@@ -168,5 +172,5 @@ The pgvector extension is enabled in Supabase for the RAG step.
 ## Status
 
 Done: project setup, database schema, Alembic, pgvector, backend APIs (Week 1, Days 3-4): conversations and messages endpoints, JWT cookie authentication with ownership checks, health endpoint, pytest suite (27 tests). Frontend UI (Week 1, Day 5): login page, sidebar with past chats, chat window, new chat, delete with confirmation, Documents page layout, Vite proxy.
-Next: Week 2 (streaming backend; AI answers and document upload come then). Not installed yet: Docker.
+Week 2 in progress: `services/llm.py` streams from Ollama and `POST /api/stream` sends it as SSE. Next: cumulative text and progress in each event, saving the answer, token counts, error events, then the frontend streaming UI. Not installed yet: Docker.
 See [RAG_TODO.md](RAG_TODO.md) for the full checklist.
