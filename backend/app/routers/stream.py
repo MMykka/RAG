@@ -11,6 +11,9 @@ from app.database import get_db
 from app.dependencies import get_current_user
 from app.models.user import User
 from app.config import settings
+from app.repositories.conversations import save_message
+from app.schemas.conversations import MessageCreate
+
 
 router = APIRouter(prefix="/api/stream", tags=["stream"])
 
@@ -18,6 +21,7 @@ router = APIRouter(prefix="/api/stream", tags=["stream"])
 def stream(data: StreamRequest, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
     
     conversation = get_chat_or_404(db, current_user.id, data.conversation_id)
+    save_message(db, conversation, MessageCreate(role="user", content=data.content))   #
 
     def events():
         text = ""
@@ -29,6 +33,10 @@ def stream(data: StreamRequest, db: Session = Depends(get_db), current_user: Use
             percent = min(99, round(count / settings.ollama_max_tokens * 100))
             yield f"data: {json.dumps({'token': piece, 'text': text, 'percent': percent})}\n\n"
 
+        if text:
+            save_message(db, conversation, MessageCreate(role="assistant", content=text))
+
+        
         yield f"data: {json.dumps({'done': True, 'text': text, 'percent': 100})}\n\n"
 
     return StreamingResponse(events(), media_type="text/event-stream")
