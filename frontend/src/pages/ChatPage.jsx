@@ -40,7 +40,9 @@ export default function ChatPage({ user, onLogout, onSessionExpired }) {
     [onSessionExpired],
   )
 
-  // Reload the sidebar list (after creating, messaging or deleting a chat)
+  // Reload the sidebar list from the database. After sending or deleting it
+  // runs in the background (no "await") to correct the list the browser
+  // already updated itself.
   async function refreshList() {
     try {
       setConversations(await listConversations())
@@ -103,7 +105,18 @@ export default function ChatPage({ user, onLogout, onSessionExpired }) {
       }
       const message = await saveMessage(chat.id, 'user', content)
       setActive({ ...chat, messages: [...chat.messages, message] })
-      await refreshList() // the chat moves to the top of the list
+
+      // Show first: move this chat to the top of the sidebar right away,
+      // using what we already know (no waiting for the server).
+      const { messages: _messages, ...summary } = chat // the sidebar does not need the messages
+      setConversations((list) => [
+        { ...summary, updated_at: message.created_at }, // this chat, with its new time...
+        ...list.filter((c) => c.id !== chat.id), // ...on top of all the others
+      ])
+
+      // Correct after: reload the real list from the database in the
+      // background. No "await", so the page does not wait for it.
+      refreshList()
       return true
     } catch (err) {
       handleError(err)
@@ -113,14 +126,21 @@ export default function ChatPage({ user, onLogout, onSessionExpired }) {
     }
   }
 
-  // Confirmed in the sidebar dialog -> delete the chat (messages go with it)
+  // Confirmed in the sidebar dialog -> delete the chat (messages go with it).
+  // Show first: the chat disappears at once. Then the server deletes it.
+  // If the server fails, the old list comes back and the error is shown.
   async function deleteChat(id) {
     setError(null)
+    const before = conversations // remember the list, in case we need to undo
+    const wasActive = active?.id === id ? active : null
+    setConversations((list) => list.filter((c) => c.id !== id))
+    if (wasActive) setActive(null)
     try {
       await deleteConversation(id)
-      if (active?.id === id) setActive(null)
-      await refreshList()
+      refreshList() // correct after: background check with the database (no "await")
     } catch (err) {
+      setConversations(before) // server said no -> put it back
+      if (wasActive) setActive(wasActive)
       handleError(err)
     }
   }

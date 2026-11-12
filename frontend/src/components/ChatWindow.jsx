@@ -2,7 +2,7 @@
 //   - Header: mic avatar, "AI Assistant", status dot (green when /api/health
 //     says the backend + database are up, red when not), "+" = new chat.
 //   - Messages of the open conversation (a greeting is shown while empty).
-//   - Input box with the blue send button. Enter sends.
+//   - Input box with the send button. Enter sends.
 // It does not call the API itself: ChatPage passes the data and the
 // onSend / onNewChat functions in as props.
 import { useEffect, useRef, useState } from 'react'

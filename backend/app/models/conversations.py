@@ -19,5 +19,5 @@ class Conversation(Base):
     user: Mapped["User"] = relationship("User", back_populates="conversations")
     
     # conversations have many messages
-    messages: Mapped[list["Message"]] = relationship("Message", back_populates="conversation", cascade="all, delete-orphan", order_by="(Message.created_at, Message.id)")
+    messages: Mapped[list["Message"]] = relationship("Message", back_populates="conversation", cascade="all, delete-orphan",passive_deletes=True, order_by="(Message.created_at, Message.id)")
     

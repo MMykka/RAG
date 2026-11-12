@@ -13,7 +13,7 @@ def create_conversation(db: Session, data: ConversationCreate, user_id: int) -> 
     conversation = Conversation(user_id=user_id, title=data.title)
     db.add(conversation)
     db.commit()
-    db.refresh(conversation)
+   # db.refresh(conversation)
     return conversation
 
 #function to get all conversations for a user with pagination using limit and offset
@@ -32,7 +32,7 @@ def save_message(db: Session, conversation: Conversation, data: MessageCreate) -
     db.add(message)
     conversation.updated_at = func.now()
     db.commit()
-    db.refresh(message)
+  #  db.refresh(message)
     return message
     
     

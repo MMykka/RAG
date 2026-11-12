@@ -19,10 +19,11 @@
   --text-muted: #8a8a8a; /* labels, hints */
   --text-faint: #5f5f5f; /* timestamps, disclaimer */
 
-  --blue: #2563eb; /* active nav, user bubble, buttons */
-  --blue-hover: #1d55d0;
-  --blue-soft: #18233a; /* assistant avatar background */
-  --blue-text: #4f8cff; /* icons on dark blue */
+  --accent: #eeeeee; /* active nav, user bubble, buttons (was blue #2563eb) */
+  --on-accent: #111111; /* text and icons on top of the accent */
+  --accent-hover: #d4d4d4;
+  --accent-soft: #262626; /* assistant avatar background */
+  --accent-text: #eeeeee; /* accent-coloured icons and links on dark backgrounds */
   --green: #22c55e;
   --orange: #f59e0b;
   --red: #ef4444;
@@ -124,13 +125,13 @@ input {
 }
 
 .button--primary {
-  background: var(--blue);
-  color: #fff;
-  box-shadow: 0 0 18px rgba(37, 99, 235, 0.35);
+  background: var(--accent);
+  color: var(--on-accent);
+  box-shadow: 0 0 18px rgba(238, 238, 238, 0.15);
 }
 
 .button--primary:hover:not(:disabled) {
-  background: var(--blue-hover);
+  background: var(--accent-hover);
 }
 
 .button--ghost {
@@ -277,8 +278,8 @@ input {
 
 .nav__item--active,
 .nav__item--active:hover {
-  background: var(--blue);
-  color: #fff;
+  background: var(--accent);
+  color: var(--on-accent);
 }
 
 /* CHATS section */
@@ -431,8 +432,8 @@ input {
   border-radius: 50%;
   display: grid;
   place-items: center;
-  background: var(--blue);
-  color: #fff;
+  background: var(--accent);
+  color: var(--on-accent);
 }
 
 .chat__header-title {
@@ -541,11 +542,11 @@ input {
   display: grid;
   place-items: center;
   border-radius: 7px;
-  background: var(--blue);
-  color: #fff;
+  background: var(--accent);
+  color: var(--on-accent);
 }
 
-/* Empty box: stays bright blue (as in the design) but does nothing */
+/* Empty box: stays the bright accent colour but does nothing */
 .chat__send:disabled {
   cursor: default;
 }
@@ -584,8 +585,8 @@ input {
 }
 
 .message__avatar--assistant {
-  background: var(--blue-soft);
-  color: var(--blue-text);
+  background: var(--accent-soft);
+  color: var(--accent-text);
 }
 
 .message__avatar--user {
@@ -620,8 +621,8 @@ input {
 }
 
 .message--user .message__bubble {
-  background: var(--blue);
-  color: #fff;
+  background: var(--accent);
+  color: var(--on-accent);
   padding: 14px 18px;
 }
 
@@ -788,7 +789,7 @@ input {
   place-items: center;
 }
 
-.file-icon--blue { background: #16233d; color: var(--blue-text); }
+.file-icon--blue { background: #262626; color: var(--accent-text); }
 .file-icon--orange { background: #3a220d; color: var(--orange); }
 
 .badge {
@@ -876,8 +877,8 @@ input {
   display: grid;
   place-items: center;
   margin: 0 auto 4px;
-  background: var(--blue);
-  color: #fff;
+  background: var(--accent);
+  color: var(--on-accent);
 }
 
 .login__title {
@@ -913,7 +914,7 @@ input {
 }
 
 .field input:focus {
-  border-color: var(--blue);
+  border-color: var(--accent);
 }
 
 .login__error {
@@ -932,7 +933,7 @@ input {
 
 .login__switch {
   font-size: 13px;
-  color: var(--blue-text);
+  color: var(--accent-text);
 }
 
 .login__switch:hover {
