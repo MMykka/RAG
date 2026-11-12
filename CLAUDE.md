@@ -29,6 +29,7 @@ RAG project. Remote: https://github.com/MMykka/RAG.git (branch: main)
 - Ollama 0.21.0 is installed on this PC with models `llama3.2:latest` (chat) and `nomic-embed-text:latest` (embeddings, 768 dimensions), served at `http://localhost:11434`.
 - Not installed (deliberate): Docker. The app pooler string (port 6543) is not added yet; `settings.database_url` falls back to the direct URL.
 - `README.md` documents new-PC setup and the Alembic workflow.
+- `OPTIMIZATIONS.md` records every speed change tried (done and rejected ideas). Both PCs are set up (2026-11-12: second PC got `pip install -r requirements.txt`, `npm install`, `SECRET_KEY`/`COOKIE_SECURE` in `.env`, Paris `DATABASE_URL_DIRECT`).
 
 ## Current Progress
 - Done: `RAG_TODO.md` Day 0 (all items), Week 1 Days 1-2 (Database Schema), and Days 3-4 `POST /api/conversations`, `GET /api/conversations` (paginated, newest `updated_at` first) and `GET /api/conversations/:id` (one chat + messages in `created_at` order, 404 if missing or not the user's) and `POST /api/conversations/:id/messages` (saves a user/assistant message, bumps the chat's `updated_at`) and `DELETE /api/conversations/:id` (204, messages cascade). All require login and use `current_user.id` (ownership checks done; no `user_id` param anymore).
@@ -39,7 +40,9 @@ RAG project. Remote: https://github.com/MMykka/RAG.git (branch: main)
 - Also done: pytest suite in `backend/tests/` (`conftest.py` fixtures `db`/`client`/`make_client`; `test_health.py`, `test_auth.py`, `test_conversations.py`; 27 tests). Run from `backend/`: `.venv\Scripts\pytest.exe -v` (~35 s against Supabase, rolled back, leaves no rows).
 - Open in Days 3-4: `Test each endpoint with curl or Postman` (skipped for now).
 - Next: Week 2 Days 1-2 Streaming Backend, first item `Research how the Llama backend works (native streaming support?)` (waiting for user approval).
-- Note: the `users` table is still empty in Supabase; create an account on the login page to use the app against the real DB.
+- Also done (2026-11-12, extra, not in `RAG_TODO.md`): speed work recorded in `OPTIMIZATIONS.md` (fewer DB trips: `expire_on_commit=False`, no `db.refresh`, `passive_deletes=True`; frontend send/delete update the sidebar first and refresh the list in the background). UI accent switched from blue to `#eee` (`--accent` in `frontend/src/index.css`).
+- Open cleanups (user, optional): `tests/conftest.py` `Session(...)` without `expire_on_commit=False`; commented-out `# db.refresh(...)` lines in `repositories/conversations.py` and `repositories/users.py`; missing space before `passive_deletes` in `models/conversations.py`; extra blank lines in `database.py`.
+- Note: the Paris database holds the user's own account (1 user, 2 chats as of 2026-11-12).
 
 ## Change Log
 ### 2026-11-09
@@ -361,3 +364,6 @@ RAG project. Remote: https://github.com/MMykka/RAG.git (branch: main)
 - User asked whether the fixes are done. Checked: frontend show-first/correct-after done; user commented out `db.refresh(user)` in `app/repositories/users.py` (register saves 1 trip; pytest 27 passed, so the response is still complete). Still open (user): `tests/conftest.py` `Session(...)` without `expire_on_commit=False`; commented-out refresh lines not deleted (conversations.py lines 16/35, users.py line 23); missing space before `passive_deletes` in `models/conversations.py`; extra blank lines in `database.py`. No code changed by Claude.
 ### 2026-11-12 (commit: speed fixes, white accent, OPTIMIZATIONS.md)
 - Committed and pushed to `origin/main` at the user's request: backend trip savings (`app/database.py`, `app/models/conversations.py`, `app/models/user.py`, `app/repositories/conversations.py`, `app/repositories/users.py`), frontend show-first/correct-after (`src/pages/ChatPage.jsx`), white accent (`src/index.css`, comments in `ChatWindow.jsx`/`MessageBubble.jsx`), new `OPTIMIZATIONS.md`, `CLAUDE.md`. Pre-push check: `.env`, `.venv/`, `node_modules/`, `dist/` ignored and untracked; neither the database password nor the SECRET_KEY is in any staged change. Open cleanups (conftest `expire_on_commit`, commented-out refresh lines, style nits) not included.
+### 2026-11-12 (CLAUDE.md refresh + servers stopped)
+- Stopped the background backend (uvicorn and its reload worker) and frontend (Vite) at the user's request; ports 8000 and 5173 free.
+- Refreshed Setup (OPTIMIZATIONS.md, both PCs set up) and Current Progress (today's speed work, white accent, open cleanups; removed the stale "users table is empty" note). Committed and pushed at the user's request.
