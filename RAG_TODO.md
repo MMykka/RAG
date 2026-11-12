@@ -86,9 +86,9 @@ Items tagged **[stack]** were added to match the chosen tech stack (React + Vite
 - [ ]  Each chunk includes: token content, cumulative text, completion percentage
 - [ ]  Save the full message to the database after the stream completes
 - [ ]  Mock the Llama backend for testing if needed
-- [ ]  **[stack]** Implement `services/llm.py` using Ollama with `stream=True`
-- [ ]  **[stack]** Return the stream with FastAPI `StreamingResponse` (`media_type="text/event-stream"`)
-- [ ]  **[stack]** Format each event as `data: {...}\n\n`
+- [x]  **[stack]** Implement `services/llm.py` using Ollama with `stream=True`
+- [x]  **[stack]** Return the stream with FastAPI `StreamingResponse` (`media_type="text/event-stream"`)
+- [x]  **[stack]** Format each event as `data: {...}\n\n`
 - [ ]  **[stack]** Read `tokens_used` from the final Ollama chunk (`eval_count`, `prompt_eval_count`) and save it with the message
 - [ ]  **[stack]** Send an error event if Ollama fails mid-stream
 - [ ]  **[stack]** Implement `services/rag.py`: embed the query with `nomic-embed-text` and retrieve the top chunks from pgvector
