@@ -42,6 +42,9 @@ class Settings:
     ollama_host: str = os.environ.get("OLLAMA_HOST", "http://localhost:11434")
     ollama_model: str = os.environ.get("OLLAMA_MODEL", "llama3.2")
 
+    ollama_max_tokens: int = int(os.environ.get("OLLAMA_MAX_TOKENS", "512"))
+
+
 
 
 
