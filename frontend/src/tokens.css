@@ -1,0 +1,67 @@
+/* Design tokens: every colour, font, size and spacing value of the app lives here.
+   Theme: Hallmark "Ribbon", colourway "two-in-the-morning" (a blue-black night,
+   warm off-white text, one amber accent like a lit window). index.css uses
+   these names only, so changing a value here changes it everywhere. */
+:root {
+  color-scheme: dark; /* the browser draws its own controls (scrollbars, inputs) dark */
+
+  /* Spacing scale (4px steps) */
+  --space-3xs: 2px; --space-2xs: 4px; --space-xs: 8px; --space-sm: 12px; --space-md: 16px; --space-lg: 24px; --space-xl: 40px; --space-2xl: 64px; --space-3xl: 96px; --space-4xl: 144px;
+  /* Type scale (ratio 1.2) */
+  --text-xs: 0.75rem; --text-sm: 0.875rem; --text-md: 1rem; --text-lg: 1.2rem; --text-xl: 1.44rem; --text-2xl: 1.728rem; --text-3xl: 2.074rem;
+  --text-display-s: 1.44rem; --text-display: 1.728rem; --text-section: 1.2rem; --text-title: 1rem; --text-lead: 1rem;
+  /* Motion */
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1); --ease-in: cubic-bezier(0.7, 0, 0.84, 0); --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+  --dur-micro: 120ms; --dur-short: 220ms; --dur-long: 420ms;
+  /* Layout and layers */
+  --container: 1440px; --gutter: 64px; --gap-columns: 32px; --section-gap-s: 120px; --section-gap: 144px; --section-gap-l: 176px;
+  --z-base: 1; --z-raised: 10; --z-dropdown: 100; --z-sticky: 200; --z-sticky-nav: 300; --z-modal: 400; --z-toast: 500; --z-tooltip: 600;
+
+  /* Surfaces: the night, from deepest to most raised */
+  --color-paper: oklch(13.2% 0.022 258);   /* main ground (chat, documents, login) */
+  --color-paper-2: oklch(16.4% 0.022 258); /* sidebar, cards, assistant bubble */
+  --color-paper-3: oklch(20% 0.022 258);   /* hover, inputs, user bubble */
+  /* Text */
+  --color-ink: oklch(93.5% 0.012 85);      /* main text, warm off-white */
+  --color-ink-2: oklch(84% 0.014 85);      /* sidebar items */
+  --color-muted: oklch(72% 0.02 255);      /* labels, hints */
+  --color-muted-2: oklch(62% 0.02 255);    /* timestamps, disclaimer (still 4.5:1) */
+  /* Lines */
+  --color-rule: oklch(27% 0.02 258);       /* hairlines between areas */
+  --color-rule-2: oklch(22% 0.02 258);     /* softer hairline inside cards */
+  --color-rule-strong: oklch(36% 0.02 258);/* tree lines, dashed drop zone */
+  --color-field-edge: oklch(50% 0.02 258); /* input borders (3:1 against the ground) */
+  /* The one accent: amber, a lit window */
+  --color-accent: oklch(82% 0.095 68);
+  --color-accent-hover: oklch(87% 0.085 70);
+  --color-accent-ink: oklch(20% 0.03 62);  /* text and icons on the amber */
+  --color-accent-soft: oklch(30% 0.05 68); /* a pressed part, never text */
+  --color-focus: oklch(82% 0.095 68);      /* keyboard focus ring */
+  /* States */
+  --color-success: oklch(76% 0.14 150);
+  --color-success-soft: oklch(24% 0.05 150);
+  --color-success-rule: oklch(36% 0.08 150);
+  --color-warning: oklch(76% 0.14 55);
+  --color-warning-soft: oklch(25% 0.05 55);
+  --color-warning-rule: oklch(38% 0.08 55);
+  --color-error: oklch(72% 0.15 25);       /* error text and the danger button fill */
+  --color-error-ink: oklch(18% 0.03 25);   /* text on the danger button */
+  --color-error-soft: oklch(23% 0.05 25);
+  --color-error-rule: oklch(38% 0.09 25);
+  --color-scrim: oklch(8% 0.02 258 / 0.72);/* behind the delete dialog */
+  --color-slot: oklch(69% 0.07 80);
+  /* Machined metal (avatars, the assistant mark), lit from above */
+  --metal-hi: oklch(44% 0.012 255); --metal-lo: oklch(25% 0.014 255);
+  --edge-light: inset 0 1px 0 oklch(100% 0 0 / 0.08);
+  --shadow-part: 0 1px 0 oklch(4% 0.01 258 / 0.5), 0 8px 16px -8px oklch(4% 0.01 258 / 0.7);
+  --shadow-panel: 0 1px 0 oklch(4% 0.01 258 / 0.5), 0 24px 48px -16px oklch(4% 0.02 258 / 0.8);
+  --shadow-well: inset 0 1px 3px oklch(4% 0.01 258 / 0.6); /* a recessed area (input box, drop zone) */
+
+  /* Fonts: Instrument Sans for titles, Figtree for everything else */
+  --font-display: "Instrument Sans", ui-sans-serif, system-ui, sans-serif; --font-body: "Figtree", ui-sans-serif, system-ui, sans-serif;
+  --font-outlier: "JetBrains Mono", ui-monospace, monospace;
+  /* Shapes */
+  --radius-card: 20px; --radius-bubble: 16px; --radius-part: 8px; --radius-pill: 999px; --rule-hair: 1px;
+  --shadow-card: none;
+  --tracking-display: -0.02em; --display-weight: 400;
+}

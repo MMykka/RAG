@@ -1,0 +1,13 @@
+[
+ {
+  "mode": "redesign",
+  "depth": "restyle",
+  "scope": "app",
+  "theme": "ribbon",
+  "shape": "app screen",
+  "signature": "lit amber index line on the current nav item",
+  "waived": [],
+  "prompt": "internal company AI assistant over uploaded documents",
+  "date": "2026-11-12"
+ }
+]
