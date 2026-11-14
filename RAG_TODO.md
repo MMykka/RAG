@@ -85,7 +85,7 @@ Items tagged **[stack]** were added to match the chosen tech stack (React + Vite
 - [x]  Create `POST /api/stream` (SSE) that accepts a message and returns a chunked response
 - [x]  Each chunk includes: token content, cumulative text, completion percentage
 - [x]  Save the full message to the database after the stream completes
-- [ ]  Mock the Llama backend for testing if needed
+- [x]  Mock the Llama backend for testing if needed
 - [x]  **[stack]** Implement `services/llm.py` using Ollama with `stream=True`
 - [x]  **[stack]** Return the stream with FastAPI `StreamingResponse` (`media_type="text/event-stream"`)
 - [x]  **[stack]** Format each event as `data: {...}\n\n`

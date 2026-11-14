@@ -43,7 +43,7 @@ class Settings:
     ollama_model: str = os.environ.get("OLLAMA_MODEL", "llama3.2")
 
     ollama_max_tokens: int = int(os.environ.get("OLLAMA_MAX_TOKENS", "512"))
-
+    ollama_mock: bool = os.environ.get("OLLAMA_MOCK", "false").lower() == "true"
 
 
 
