@@ -9,7 +9,7 @@ client = Client(host=settings.ollama_host)
 
 
 
-def stream_chat(messages: list[dict]) -> Iterator[str]:
+def stream_chat(messages: list[dict], usage: dict) -> Iterator[str]:
     # Ask Ollama for the answer piece by piece instead of waiting for all of it.
     # messages looks like [{"role": "user", "content": "Hi"}]
     if settings.ollama_mock:
@@ -17,6 +17,10 @@ def stream_chat(messages: list[dict]) -> Iterator[str]:
         for piece in answer.split(" "):
             time.sleep(0.05)
             yield piece + " "
+        
+        usage["prompt"] = 10
+        usage["answer"] = len(answer.split(" "))
+
         return 
 
     stream = client.chat(model=settings.ollama_model, messages=messages, stream=True, options={"num_predict": settings.ollama_max_tokens}
@@ -27,5 +31,9 @@ def stream_chat(messages: list[dict]) -> Iterator[str]:
         if piece:
             # yield hands this piece out right away and pauses here until the caller asks for the next one.
             yield piece
+        if chunk.done:
+            usage["prompt"] = chunk.prompt_eval_count
+            usage["answer"] = chunk.eval_count
+
 
 

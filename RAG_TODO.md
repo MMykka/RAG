@@ -89,7 +89,7 @@ Items tagged **[stack]** were added to match the chosen tech stack (React + Vite
 - [x]  **[stack]** Implement `services/llm.py` using Ollama with `stream=True`
 - [x]  **[stack]** Return the stream with FastAPI `StreamingResponse` (`media_type="text/event-stream"`)
 - [x]  **[stack]** Format each event as `data: {...}\n\n`
-- [ ]  **[stack]** Read `tokens_used` from the final Ollama chunk (`eval_count`, `prompt_eval_count`) and save it with the message
+- [x]  **[stack]** Read `tokens_used` from the final Ollama chunk (`eval_count`, `prompt_eval_count`) and save it with the message
 - [ ]  **[stack]** Send an error event if Ollama fails mid-stream
 - [ ]  **[stack]** Implement `services/rag.py`: embed the query with `nomic-embed-text` and retrieve the top chunks from pgvector
 - [ ]  **[stack]** Create a `chunks` table with a vector column, and a script to chunk and embed company documents

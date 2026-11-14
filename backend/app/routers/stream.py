@@ -21,20 +21,24 @@ router = APIRouter(prefix="/api/stream", tags=["stream"])
 def stream(data: StreamRequest, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
     
     conversation = get_chat_or_404(db, current_user.id, data.conversation_id)
-    save_message(db, conversation, MessageCreate(role="user", content=data.content))   #
+    user_msg = save_message(db, conversation, MessageCreate(role="user", content=data.content))   #
 
     def events():
         text = ""
         count = 0
-        stream = stream_chat([{"role": "user", "content": data.content}])
+        usage = {}
+        stream = stream_chat([{"role": "user", "content": data.content}], usage)
         for piece in stream:
+
             text += piece
             count += 1
             percent = min(99, round(count / settings.ollama_max_tokens * 100))
+
             yield f"data: {json.dumps({'token': piece, 'text': text, 'percent': percent})}\n\n"
 
         if text:
-            save_message(db, conversation, MessageCreate(role="assistant", content=text))
+            user_msg.tokens_used = usage.get("prompt")
+            save_message(db, conversation, MessageCreate(role="assistant", content=text, tokens_used=usage.get("answer")))
 
         
         yield f"data: {json.dumps({'done': True, 'text': text, 'percent': 100})}\n\n"
