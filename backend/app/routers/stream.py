@@ -27,14 +27,21 @@ def stream(data: StreamRequest, db: Session = Depends(get_db), current_user: Use
         text = ""
         count = 0
         usage = {}
-        stream = stream_chat([{"role": "user", "content": data.content}], usage)
-        for piece in stream:
 
-            text += piece
-            count += 1
-            percent = min(99, round(count / settings.ollama_max_tokens * 100))
+        try:
+            stream = stream_chat([{"role": "user", "content": data.content}], usage)
+            for piece in stream:
 
-            yield f"data: {json.dumps({'token': piece, 'text': text, 'percent': percent})}\n\n"
+                text += piece
+                count += 1
+                percent = min(99, round(count / settings.ollama_max_tokens * 100))
+
+                yield f"data: {json.dumps({'token': piece, 'text': text, 'percent': percent})}\n\n"
+        except Exception as e:
+            print("Stream Failed", e)
+            yield f"data: {json.dumps({'error': 'The AI stopped answering. Please try again.', 'text': text})}\n\n"
+            return 
+
 
         if text:
             user_msg.tokens_used = usage.get("prompt")
