@@ -61,6 +61,23 @@ Newest at the bottom. "Trip" = one round trip between the backend and the databa
 | Transaction pooler (port 6543) | none per request | Helps with many connections at once, not speed of one request |
 | Show a sent message before the server answers | feels instant | More code (temporary ids, failed sends); better done with Week 2 streaming |
 
+## RAG retrieval speed (considered 2026-11-20, nothing changed yet)
+
+Question: is the `chunks` table with an HNSW index (`ix_chunks_embedding`, `vector_cosine_ops`) the fastest way to retrieve?
+
+- **Measured** (Supabase Paris, 5000 fake chunks inside a rolled-back transaction, top 5 by cosine distance): search ~77 ms, of which ~55 ms is the network trip (`SELECT 1` alone). The search itself is ~20 ms. At this size Postgres skipped the HNSW index and compared every row (`Sort`), which is just as fast. HNSW pays off at tens of thousands of chunks, so it stays.
+- **Not measured yet:** embedding the question with `nomic-embed-text` (no Ollama on the CCINTL PC). Expected tens of ms when the model is loaded, seconds when Ollama has to load it after 5 idle minutes.
+
+| Idea | Saves | Status |
+|---|---|---|
+| Keep `nomic-embed-text` loaded (`keep_alive` on `embed`) | the model load after 5 idle minutes (seconds) | **To do in `rag.py`**; the biggest win |
+| One database trip per search (`ORDER BY embedding <=> :vec LIMIT k`, embed in Python first) | extra trips, ~60 ms each | **To do in `rag.py`** |
+| Check with `EXPLAIN` that the HNSW index is used once real data is in | avoids a silent full scan at large sizes | **To do** after the ingest script; a `WHERE` filter or a mismatched operator can make Postgres skip the index |
+| Inner product (`vector_ip_ops`, `<#>`) instead of cosine | ~1 ms | Skipped: tiny gain, only correct if the embeddings are normalized |
+| `halfvec(768)` instead of `vector(768)` | half the storage, ~1 ms | Skipped: not needed at this size; needs a migration |
+| Tune `hnsw.ef_search` (default 40) | ~1 ms | Skipped: only matters once the index is in use on many rows |
+| Separate vector database or in-memory FAISS | a few ms | Rejected: `RAG_Tech_Stack.md` chose pgvector so chats and embeddings live in one database; the ~55 ms trip would stay anyway |
+
 ## Open follow-ups
 
 - `backend/tests/conftest.py` builds its own `Session(...)` without `expire_on_commit=False`, so the tests do not run with the same setting as the app.

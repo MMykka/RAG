@@ -1,3 +1,5 @@
+from urllib import response
+
 from ollama import Client
 from app.config import settings
 from collections.abc import Iterator
@@ -35,5 +37,15 @@ def stream_chat(messages: list[dict], usage: dict) -> Iterator[str]:
             usage["prompt"] = chunk.prompt_eval_count
             usage["answer"] = chunk.eval_count
 
+
+
+
+def embed_documents(texts: list[str]) -> list[list[float]]:
+    if settings.ollama_mock:
+        return [[0.1] * 768 for _ in texts]
+
+
+    response = client.embed(model=settings.ollama_embed_model, input=["search_document: " + text for text in texts])
+    return response.embeddings
 
 
