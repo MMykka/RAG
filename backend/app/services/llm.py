@@ -45,7 +45,13 @@ def embed_documents(texts: list[str]) -> list[list[float]]:
         return [[0.1] * 768 for _ in texts]
 
 
-    response = client.embed(model=settings.ollama_embed_model, input=["search_document: " + text for text in texts])
+    response = client.embed(model=settings.ollama_embed_model, input=["search_document: " + text for text in texts], keep_alive="30m")
     return response.embeddings
 
 
+def embed_query(text: str) -> list[float]:
+    if settings.ollama_mock:
+        return [0.1] * 768
+
+    response = client.embed(model=settings.ollama_embed_model, input="search_query: " + text, keep_alive="30m")
+    return response.embeddings[0]

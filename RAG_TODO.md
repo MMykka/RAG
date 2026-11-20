@@ -91,7 +91,7 @@ Items tagged **[stack]** were added to match the chosen tech stack (React + Vite
 - [x]  **[stack]** Format each event as `data: {...}\n\n`
 - [x]  **[stack]** Read `tokens_used` from the final Ollama chunk (`eval_count`, `prompt_eval_count`) and save it with the message
 - [x]  **[stack]** Send an error event if Ollama fails mid-stream
-- [ ]  **[stack]** Implement `services/rag.py`: embed the query with `nomic-embed-text` and retrieve the top chunks from pgvector
+- [x]  **[stack]** Implement `services/rag.py`: embed the query with `nomic-embed-text` and retrieve the top chunks from pgvector
 - [x]  **[stack]** Create a `chunks` table with a vector column, and a script to chunk and embed company documents
 - [ ]  **[stack]** Build the prompt from the retrieved chunks and save source references with the message
 - [ ]  **[stack]** Mock Ollama in `pytest` so stream tests run without a model

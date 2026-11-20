@@ -70,8 +70,8 @@ Question: is the `chunks` table with an HNSW index (`ix_chunks_embedding`, `vect
 
 | Idea | Saves | Status |
 |---|---|---|
-| Keep `nomic-embed-text` loaded (`keep_alive` on `embed`) | the model load after 5 idle minutes (seconds) | **To do in `rag.py`**; the biggest win |
-| One database trip per search (`ORDER BY embedding <=> :vec LIMIT k`, embed in Python first) | extra trips, ~60 ms each | **To do in `rag.py`** |
+| Keep `nomic-embed-text` loaded (`keep_alive` on `embed`) | the model load after 5 idle minutes (seconds) | **Done 2026-11-20**: `keep_alive="30m"` on both `client.embed` calls (`embed_documents`, `embed_query` in `services/llm.py`); not timed yet (no Ollama on the CCINTL PC) |
+| One database trip per search (`ORDER BY embedding <=> :vec LIMIT k`, embed in Python first) | extra trips, ~60 ms each | **Done 2026-11-20**: `search_chunks` in `repositories/chunks.py`; checked 1 query per search, and the plan uses `ix_chunks_embedding` when a full scan is not cheaper |
 | Check with `EXPLAIN` that the HNSW index is used once real data is in | avoids a silent full scan at large sizes | **To do** after the ingest script; a `WHERE` filter or a mismatched operator can make Postgres skip the index |
 | Inner product (`vector_ip_ops`, `<#>`) instead of cosine | ~1 ms | Skipped: tiny gain, only correct if the embeddings are normalized |
 | `halfvec(768)` instead of `vector(768)` | half the storage, ~1 ms | Skipped: not needed at this size; needs a migration |
