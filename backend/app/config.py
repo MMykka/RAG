@@ -35,7 +35,7 @@ class Settings:
     
     secret_key: str = os.environ.get("SECRET_KEY", "")
     jwt_algorithm: str = "HS256"
-    access_token_expire_minutes: int = 60
+    access_token_expire_minutes: int = 8 * 60  # 8 hours (one working day)
     # Secure cookie = sent only over HTTPS. Off on this PC (plain http://localhost), set COOKIE_SECURE=true on the server at go-live.
     cookie_secure: bool = os.environ.get("COOKIE_SECURE", "false").lower() == "true"
 
