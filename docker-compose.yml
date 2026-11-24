@@ -30,6 +30,7 @@ services:
     restart: unless-stopped
 
   nginx:
+    # Built from frontend/Dockerfile: Node builds the React app, then Nginx serves the built files (dist/).
     build: ./frontend
     # The only service open to the outside. 443 (HTTPS) is added with the HTTPS item.
     ports:
