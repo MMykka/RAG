@@ -30,7 +30,7 @@ services:
     restart: unless-stopped
 
   nginx:
-    image: nginx:1.27-alpine
+    build: ./frontend
     # The only service open to the outside. 443 (HTTPS) is added with the HTTPS item.
     ports:
       - "80:80"
