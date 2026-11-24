@@ -108,12 +108,12 @@ Items tagged **[stack]** were added to match the chosen tech stack (React + Vite
 
 ### Day 4: Export Feature
 
-- [ ]  Export as Markdown: conversation title as h1, alternating user/assistant messages
-- [ ]  Export as JSON: structured with metadata (timestamp, model, tokens used)
-- [ ]  Add a download button in the conversation view
-- [ ]  **[stack]** Add `routers/export.py` and `services/export.py` (Python `json` + Markdown templating)
-- [ ]  **[stack]** Return files with a `Content-Disposition` header so the browser downloads them
-- [ ]  **[stack]** Check ownership before exporting
+- [x]  Export as Markdown: conversation title as h1, alternating user/assistant messages
+- [x]  Export as JSON: structured with metadata (timestamp, model, tokens used)
+- [x]  Add a download button in the conversation view
+- [x]  **[stack]** Add `routers/export.py` and `services/export.py` (Python `json` + Markdown templating)
+- [x]  **[stack]** Return files with a `Content-Disposition` header so the browser downloads them
+- [x]  **[stack]** Check ownership before exporting
 
 ### Day 5: Basic Analytics & Polish
 

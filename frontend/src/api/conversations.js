@@ -20,6 +20,12 @@ export function saveMessage(conversationId, role, content) {
   })
 }
 
+// Download link for a chat as a file (format 'md' or 'json'). The server sends
+// it with Content-Disposition: attachment, so the browser saves it; no fetch needed.
+export function exportUrl(id, format) {
+  return `/api/conversations/${id}/export?format=${format}`
+}
+
 export function deleteConversation(id) {
   return apiFetch(`/api/conversations/${id}`, { method: 'DELETE' })
 }

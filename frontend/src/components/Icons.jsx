@@ -105,6 +105,15 @@ export const SendIcon = (p) => (
   </Icon>
 )
 
+// Download: arrow into a tray (export the open chat)
+export const DownloadIcon = (p) => (
+  <Icon {...p}>
+    <path d="M12 3v12" />
+    <path d="m7 10 5 5 5-5" />
+    <path d="M5 21h14" />
+  </Icon>
+)
+
 // Stop: a rounded square (the Stop button while an answer streams)
 export const StopIcon = (p) => (
   <Icon {...p}>

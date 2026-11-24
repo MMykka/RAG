@@ -62,6 +62,14 @@ def broken_ollama(monkeypatch):
     monkeypatch.setattr(rag, "embed_query", lambda text: vector(0))
 
 
+@pytest.fixture
+def no_chunks(db):
+    # Start from an empty knowledge base, so the test does not depend on the real documents.
+    # This runs inside the test's transaction, which is rolled back: the real chunks stay.
+    db.query(Chunk).delete()
+    db.flush()
+
+
 def new_chat(client) -> int:
     return client.post("/api/conversations", json={}).json()["id"]
 
@@ -97,7 +105,7 @@ def test_stream_saves_messages(make_client, fake_ollama):
     assert messages[1]["tokens_used"] == 2   # answer tokens on the assistant message
 
 
-def test_stream_uses_chunks(make_client, fake_ollama, db):
+def test_stream_uses_chunks(make_client, fake_ollama, db, no_chunks):
     db.add_all([
         Chunk(source="holiday.md", chunk_index=3, content="Every employee gets 27 holiday days.", embedding=vector(0)),
         Chunk(source="office.md", chunk_index=0, content="The office opens at 8:30.", embedding=vector(1)),
@@ -121,7 +129,7 @@ def test_stream_uses_chunks(make_client, fake_ollama, db):
     assert saved[0]["sources"] is None  # the user's message has no sources
 
 
-def test_stream_without_chunks(make_client, fake_ollama):
+def test_stream_without_chunks(make_client, fake_ollama, no_chunks):
     alice = make_client("alice")
     chat_id = new_chat(alice)
     done = read_events(ask(alice, chat_id))[-1]

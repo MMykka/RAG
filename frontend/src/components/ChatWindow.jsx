@@ -1,6 +1,7 @@
 // ChatWindow: the "AI Assistant" panel.
 //   - Header: mic avatar, "AI Assistant", status dot (green when /api/health
-//     says the backend + database are up, red when not), "+" = new chat.
+//     says the backend + database are up, red when not), download = export
+//     the open chat as Markdown or JSON, "+" = new chat.
 //   - Messages of the open conversation (a greeting is shown while empty).
 //   - While the AI answers: a live bubble that grows token by token, with an
 //     indicator under it ("Thinking…" until the first token, then the count).
@@ -10,7 +11,8 @@
 // onSend / onStop / onNewChat functions in as props.
 import { useEffect, useRef, useState } from 'react'
 import MessageBubble from './MessageBubble.jsx'
-import { MicIcon, PlusIcon, SendIcon, StopIcon } from './Icons.jsx'
+import { DownloadIcon, MicIcon, PlusIcon, SendIcon, StopIcon } from './Icons.jsx'
+import { exportUrl } from '../api/conversations.js'
 
 const GREETING = "Hello! I'm ready to answer questions about your knowledge base."
 
@@ -29,9 +31,30 @@ export default function ChatWindow({
   onNewChat,
 }) {
   const [text, setText] = useState('')
+  const [exportOpen, setExportOpen] = useState(false) // download menu open?
   const bottomRef = useRef(null)
+  const exportRef = useRef(null)
   const messages = conversation?.messages ?? []
   const busy = sending || streaming
+  // Export needs a saved chat; while an answer streams the file would miss it
+  const canExport = Boolean(conversation?.id) && !loading && !streaming
+
+  // Close the download menu on a click outside it or on Escape
+  useEffect(() => {
+    if (!exportOpen) return
+    const onPointer = (event) => {
+      if (!exportRef.current?.contains(event.target)) setExportOpen(false)
+    }
+    const onKey = (event) => {
+      if (event.key === 'Escape') setExportOpen(false)
+    }
+    document.addEventListener('mousedown', onPointer)
+    document.addEventListener('keydown', onKey)
+    return () => {
+      document.removeEventListener('mousedown', onPointer)
+      document.removeEventListener('keydown', onKey)
+    }
+  }, [exportOpen])
 
   // Scroll to the newest message whenever the list changes or the answer grows
   useEffect(() => {
@@ -61,9 +84,36 @@ export default function ChatWindow({
             {healthy === false ? 'Offline' : 'RAG Active'}
           </div>
         </div>
-        <button className="icon-button chat__new" title="New chat" onClick={onNewChat}>
-          <PlusIcon size={20} />
-        </button>
+        <div className="chat__actions">
+          <div className="export" ref={exportRef}>
+            <button
+              className="icon-button"
+              title={canExport ? 'Download this chat' : 'Open a chat to download it'}
+              aria-label="Download this chat"
+              aria-haspopup="menu"
+              aria-expanded={exportOpen}
+              disabled={!canExport}
+              onClick={() => setExportOpen((open) => !open)}
+            >
+              <DownloadIcon size={20} />
+            </button>
+            {exportOpen && canExport && (
+              <div className="export__menu" role="menu">
+                <div className="export__label">Download chat as</div>
+                {/* Plain links: the server answers with Content-Disposition: attachment, so the browser saves the file */}
+                <a className="export__item" role="menuitem" href={exportUrl(conversation.id, 'md')} onClick={() => setExportOpen(false)}>
+                  Markdown <span className="export__ext">.md</span>
+                </a>
+                <a className="export__item" role="menuitem" href={exportUrl(conversation.id, 'json')} onClick={() => setExportOpen(false)}>
+                  JSON <span className="export__ext">.json</span>
+                </a>
+              </div>
+            )}
+          </div>
+          <button className="icon-button" title="New chat" onClick={onNewChat}>
+            <PlusIcon size={20} />
+          </button>
+        </div>
       </header>
 
       {/* Messages */}

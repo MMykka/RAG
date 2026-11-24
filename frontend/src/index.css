@@ -520,8 +520,70 @@ input {
   background: var(--color-error);
 }
 
-.chat__new {
+/* Right side of the header: download, then "+" */
+.chat__actions {
   margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+}
+
+/* An icon button with nothing to do yet (no chat open): its own ink, no-entry cursor */
+.icon-button:disabled {
+  color: var(--color-rule-strong);
+  background: none;
+  cursor: not-allowed;
+}
+
+/* Download menu: the same raised part as the profile menu, under the button */
+.export {
+  position: relative;
+}
+
+.export__menu {
+  position: absolute;
+  right: 0;
+  top: calc(100% + var(--space-xs));
+  z-index: var(--z-dropdown);
+  min-width: 200px;
+  padding: var(--space-2xs);
+  background: var(--color-paper-3);
+  border-radius: var(--radius-part);
+  box-shadow: var(--edge-light), var(--shadow-panel);
+}
+
+.export__label {
+  padding: var(--space-xs) var(--space-sm);
+  font-size: var(--text-xs);
+  color: var(--color-muted);
+}
+
+.export__item {
+  min-height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-sm);
+  padding: 0 var(--space-sm);
+  border-radius: var(--radius-part);
+  font-size: var(--text-sm);
+  color: var(--color-ink);
+  text-decoration: none;
+  transition: background-color var(--dur-micro) var(--ease-out);
+}
+
+.export__item:hover {
+  background: var(--color-paper-2);
+}
+
+.export__item:active {
+  background: var(--color-accent-soft);
+}
+
+.export__ext {
+  font-family: var(--font-outlier);
+  font-size: var(--text-xs);
+  color: var(--color-muted-2);
 }
 
 .chat__messages {
