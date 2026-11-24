@@ -28,7 +28,9 @@ def get_chat_by_id(db: Session, user_id: int, conversation_id:int) -> Conversati
 # save message to a conversation
 def save_message(db: Session, conversation: Conversation, data: MessageCreate) -> Message:
     
-    message = Message(conversation_id=conversation.id, role=data.role, content=data.content, tokens_used=data.tokens_used)
+    sources = [s.model_dump() for s in data.sources] if data.sources else None
+
+    message = Message(conversation_id=conversation.id, role=data.role, content=data.content, tokens_used=data.tokens_used, sources=sources)
     db.add(message)
     conversation.updated_at = func.now()
     db.commit()

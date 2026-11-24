@@ -2,6 +2,7 @@ from sqlalchemy import String, DateTime, func, Text, ForeignKey
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from datetime import datetime
 from app.database import Base
+from sqlalchemy.dialects.postgresql import JSONB
 
 
 # message class
@@ -13,6 +14,7 @@ class Message(Base):
     role: Mapped[str] = mapped_column(String(50), nullable=False)
     content: Mapped[str] = mapped_column(Text, nullable=False)
     tokens_used: Mapped[int | None] = mapped_column(nullable=True)
+    sources: Mapped[list | None] = mapped_column(JSONB, nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now(), index=True)
     
     # messages belong to a conversation

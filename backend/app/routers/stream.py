@@ -12,7 +12,8 @@ from app.dependencies import get_current_user
 from app.models.user import User
 from app.config import settings
 from app.repositories.conversations import save_message
-from app.schemas.conversations import MessageCreate
+from app.schemas.conversations import MessageCreate, SourceRef
+from app.services.rag import retrieve_chunks, build_prompt
 
 
 router = APIRouter(prefix="/api/stream", tags=["stream"])
@@ -21,7 +22,7 @@ router = APIRouter(prefix="/api/stream", tags=["stream"])
 def stream(data: StreamRequest, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
     
     conversation = get_chat_or_404(db, current_user.id, data.conversation_id)
-    user_msg = save_message(db, conversation, MessageCreate(role="user", content=data.content))   #
+    user_msg = save_message(db, conversation, MessageCreate(role="user", content=data.content))
 
     def events():
         text = ""
@@ -29,7 +30,11 @@ def stream(data: StreamRequest, db: Session = Depends(get_db), current_user: Use
         usage = {}
 
         try:
-            stream = stream_chat([{"role": "user", "content": data.content}], usage)
+            chunks = retrieve_chunks(db, data.content)
+            messages = build_prompt(data.content, chunks)
+            sources = [SourceRef(source=c.source, chunk_index=c.chunk_index) for c in chunks]
+            stream = stream_chat(messages, usage)
+
             for piece in stream:
 
                 text += piece
@@ -45,9 +50,9 @@ def stream(data: StreamRequest, db: Session = Depends(get_db), current_user: Use
 
         if text:
             user_msg.tokens_used = usage.get("prompt")
-            save_message(db, conversation, MessageCreate(role="assistant", content=text, tokens_used=usage.get("answer")))
+            save_message(db, conversation, MessageCreate(role="assistant", content=text, tokens_used=usage.get("answer"), sources=sources or None))
 
         
-        yield f"data: {json.dumps({'done': True, 'text': text, 'percent': 100})}\n\n"
+        yield f"data: {json.dumps({'done': True, 'text': text, 'percent': 100, 'sources': [s.model_dump() for s in sources]})}\n\n"
 
     return StreamingResponse(events(), media_type="text/event-stream")

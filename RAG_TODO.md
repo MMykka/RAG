@@ -93,7 +93,7 @@ Items tagged **[stack]** were added to match the chosen tech stack (React + Vite
 - [x]  **[stack]** Send an error event if Ollama fails mid-stream
 - [x]  **[stack]** Implement `services/rag.py`: embed the query with `nomic-embed-text` and retrieve the top chunks from pgvector
 - [x]  **[stack]** Create a `chunks` table with a vector column, and a script to chunk and embed company documents
-- [ ]  **[stack]** Build the prompt from the retrieved chunks and save source references with the message
+- [x]  **[stack]** Build the prompt from the retrieved chunks and save source references with the message
 - [ ]  **[stack]** Mock Ollama in `pytest` so stream tests run without a model
 
 ### Day 3: Frontend Streaming UI

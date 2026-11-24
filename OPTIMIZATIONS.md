@@ -66,11 +66,11 @@ Newest at the bottom. "Trip" = one round trip between the backend and the databa
 Question: is the `chunks` table with an HNSW index (`ix_chunks_embedding`, `vector_cosine_ops`) the fastest way to retrieve?
 
 - **Measured** (Supabase Paris, 5000 fake chunks inside a rolled-back transaction, top 5 by cosine distance): search ~77 ms, of which ~55 ms is the network trip (`SELECT 1` alone). The search itself is ~20 ms. At this size Postgres skipped the HNSW index and compared every row (`Sort`), which is just as fast. HNSW pays off at tens of thousands of chunks, so it stays.
-- **Not measured yet:** embedding the question with `nomic-embed-text` (no Ollama on the CCINTL PC). Expected tens of ms when the model is loaded, seconds when Ollama has to load it after 5 idle minutes.
+- **Embedding the question, measured 2026-11-24** (local Ollama 0.21.0, `nomic-embed-text`): first call ~2.7 s (model load), then ~60-67 ms per question; 2 document texts in one call ~66 ms. So a warm question costs about embed ~65 ms + search ~77 ms ≈ 0.15 s before Llama starts. The vectors come back normalized (length 1.0), so the inner-product idea below would give the same ranking.
 
 | Idea | Saves | Status |
 |---|---|---|
-| Keep `nomic-embed-text` loaded (`keep_alive` on `embed`) | the model load after 5 idle minutes (seconds) | **Done 2026-11-20**: `keep_alive="30m"` on both `client.embed` calls (`embed_documents`, `embed_query` in `services/llm.py`); not timed yet (no Ollama on the CCINTL PC) |
+| Keep `nomic-embed-text` loaded (`keep_alive` on `embed`) | the model load after 5 idle minutes (seconds) | **Done 2026-11-20**: `keep_alive="30m"` on both `client.embed` calls (`embed_documents`, `embed_query` in `services/llm.py`). Measured 2026-11-24: cold ~2.7 s vs warm ~65 ms, so keeping it loaded saves ~2.6 s on the first question after a pause |
 | One database trip per search (`ORDER BY embedding <=> :vec LIMIT k`, embed in Python first) | extra trips, ~60 ms each | **Done 2026-11-20**: `search_chunks` in `repositories/chunks.py`; checked 1 query per search, and the plan uses `ix_chunks_embedding` when a full scan is not cheaper |
 | Check with `EXPLAIN` that the HNSW index is used once real data is in | avoids a silent full scan at large sizes | **To do** after the ingest script; a `WHERE` filter or a mismatched operator can make Postgres skip the index |
 | Inner product (`vector_ip_ops`, `<#>`) instead of cosine | ~1 ms | Skipped: tiny gain, only correct if the embeddings are normalized |
