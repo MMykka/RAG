@@ -128,7 +128,7 @@ From `backend/`:
 .venv\Scripts\pytest.exe -v
 ```
 
-The tests run against the real Supabase database, but each test runs inside a transaction that is rolled back, so nothing is left behind. They need internet and a filled-in `.env`, and take a few minutes.
+The tests run against the real Supabase database, but each test runs inside a transaction that is rolled back, so nothing is left behind. They need internet and a filled-in `.env`, and take under a minute. Ollama is not needed: `tests/test_stream.py` replaces it with a fake (pytest `monkeypatch`), and a safety net makes any accidental call to the real Ollama fail.
 
 ## Database migrations (Alembic)
 
@@ -171,6 +171,6 @@ The pgvector extension is enabled in Supabase for the RAG step.
 
 ## Status
 
-Done: project setup, database schema, Alembic, pgvector, backend APIs (Week 1, Days 3-4): conversations and messages endpoints, JWT cookie authentication with ownership checks, health endpoint, pytest suite (27 tests). Frontend UI (Week 1, Day 5): login page, sidebar with past chats, chat window, new chat, delete with confirmation, Documents page layout, Vite proxy.
+Done: project setup, database schema, Alembic, pgvector, backend APIs (Week 1, Days 3-4): conversations and messages endpoints, JWT cookie authentication with ownership checks, health endpoint, pytest suite (35 tests, incl. 8 stream tests with a fake Ollama). Frontend UI (Week 1, Day 5): login page, sidebar with past chats, chat window, new chat, delete with confirmation, Documents page layout, Vite proxy.
 Week 2 in progress: `POST /api/stream` streams Llama's answer as SSE (token, text so far, percentage), saves both messages with token counts, sends an error event if Ollama fails, and answers from company documents (RAG): `chunks` table with pgvector, `scripts/ingest_documents.py` to load `.txt`/`.md` files from `documents/`, `services/rag.py` to retrieve the closest chunks, source references saved with each answer. Next: the frontend streaming UI. Not installed yet: Docker.
 See [RAG_TODO.md](RAG_TODO.md) for the full checklist.
