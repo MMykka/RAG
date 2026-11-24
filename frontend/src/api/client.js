@@ -27,7 +27,8 @@ export async function apiFetch(path, { method = 'GET', body } = {}) {
 }
 
 // FastAPI errors: {"detail": "text"} or {"detail": [{msg: ...}, ...]} for 422
-function errorMessage(data, status) {
+// (also used by api/stream.js, which reads its response differently)
+export function errorMessage(data, status) {
   const detail = data?.detail
   if (typeof detail === 'string') return detail
   if (Array.isArray(detail) && detail.length > 0) {

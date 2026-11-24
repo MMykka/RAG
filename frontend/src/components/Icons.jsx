@@ -105,6 +105,13 @@ export const SendIcon = (p) => (
   </Icon>
 )
 
+// Stop: a rounded square (the Stop button while an answer streams)
+export const StopIcon = (p) => (
+  <Icon {...p}>
+    <rect x="6" y="6" width="12" height="12" rx="2" fill="currentColor" />
+  </Icon>
+)
+
 export const TrashIcon = (p) => (
   <Icon {...p}>
     <path d="M3 6h18" />

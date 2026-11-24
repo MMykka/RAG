@@ -1,11 +1,14 @@
 // MessageBubble: one chat message.
 //   - assistant: dark card on the left, with a round mic avatar
 //   - user:      light bubble on the right, with the user's initial as avatar
-// The time ("Just now", "14:03", ...) is shown under the bubble.
+// The time ("Just now", "14:03", ...) is shown under the bubble, or a note
+// such as "Stopped · not saved".
+//   live      the answer is still arriving: a blinking caret follows the text
+//   children  shown under the bubble (the streaming indicator)
 import { MicIcon } from './Icons.jsx'
 import { formatMessageTime } from '../utils/time.js'
 
-export default function MessageBubble({ role, content, createdAt, userInitial }) {
+export default function MessageBubble({ role, content, createdAt, note, live, userInitial, children }) {
   const isUser = role === 'user'
 
   return (
@@ -18,8 +21,13 @@ export default function MessageBubble({ role, content, createdAt, userInitial })
       )}
 
       <div className="message__body">
-        <div className="message__bubble">{content}</div>
-        {createdAt && <div className="message__time">{formatMessageTime(createdAt)}</div>}
+        <div className={`message__bubble ${live ? 'message__bubble--live' : ''}`}>{content}</div>
+        {children}
+        {note ? (
+          <div className="message__time message__note">{note}</div>
+        ) : (
+          createdAt && <div className="message__time">{formatMessageTime(createdAt)}</div>
+        )}
       </div>
 
       {/* User avatar sits right of the bubble */}

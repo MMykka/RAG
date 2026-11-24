@@ -641,6 +641,12 @@ input {
   cursor: progress;
 }
 
+/* While an answer streams the send button becomes Stop: same amber pill, square icon.
+   It stays lit because stopping is the one thing you can do at that moment */
+.chat__send--stop {
+  cursor: pointer;
+}
+
 .chat__disclaimer {
   margin-top: var(--space-sm);
   text-align: center;
@@ -728,6 +734,59 @@ input {
 .message--user .message__time {
   text-align: right;
   padding-right: var(--space-2xs);
+}
+
+/* An answer that was stopped: the note replaces the time, in the warm state colour */
+.message__note {
+  color: var(--color-warning);
+}
+
+/* The answer while it arrives: an amber caret blinks after the last letter.
+   (base.css turns the blinking off for people who ask for reduced motion) */
+.message__bubble--live::after {
+  content: "";
+  display: inline-block;
+  width: 0.5em;
+  height: 1.1em;
+  margin-left: var(--space-3xs);
+  vertical-align: text-bottom;
+  background: var(--color-accent);
+  border-radius: var(--space-3xs);
+  animation: caret-blink 1s steps(2, start) infinite;
+}
+
+/* Before the first token the bubble is empty: give it one line of height */
+.message__bubble--live:empty {
+  min-height: calc(1.6em + 2 * var(--space-sm));
+}
+
+@keyframes caret-blink {
+  to { visibility: hidden; }
+}
+
+/* Under the live answer: "Thinking…", then "Writing · 23 tokens" */
+.stream-status {
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+  margin-top: var(--space-2xs);
+  padding-left: var(--space-2xs);
+  font-size: var(--text-xs);
+  color: var(--color-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.stream-status__dot {
+  width: 6px;
+  height: 6px;
+  border-radius: var(--radius-pill);
+  background: var(--color-accent);
+  animation: stream-pulse var(--dur-long) var(--ease-in-out) infinite alternate;
+}
+
+@keyframes stream-pulse {
+  from { opacity: 1; }
+  to { opacity: 0.3; }
 }
 
 /* ---------- 6. Documents panel ---------- */

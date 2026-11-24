@@ -114,10 +114,11 @@ npm run dev
 Open http://localhost:5173, create an account on the login page (or log in), and chat.
 
 - The Vite proxy (`frontend/vite.config.js`) forwards every `/api/...` call to `http://localhost:8000`, so the browser sees one origin and the login cookie just works. No CORS setup is needed.
-- `src/api/`: all fetch calls (`client.js` shared helper + health, `auth.js`, `conversations.js`).
+- `src/api/`: all fetch calls (`client.js` shared helper + health, `auth.js`, `conversations.js`, `stream.js` = `POST /api/stream` read with a `ReadableStream`, partial events buffered).
+- `src/hooks/useStream.js`: state of the answer being streamed (text so far, token count) plus `start` / `stop` (`AbortController`). Answers appear word by word with "Thinking…" / "Writing · N tokens" under them; the send button is disabled and a Stop button shows while an answer streams; a stopped answer stays on screen marked "Stopped · not saved"; stream errors show above the input box.
 - `src/components/`: `Sidebar`, `ChatWindow`, `MessageBubble`, `Icons` (inline SVGs).
 - `src/pages/`: `LoginPage`, `ChatPage` (holds the state, calls the API), `DocumentsPage` (upload panel; layout only until Week 2).
-- Styles: `src/index.css` (colours at the top as CSS variables).
+- Styles: `src/index.css`, with every colour, font and size in `src/tokens.css`.
 - Check the code: `npm run lint`; production build: `npm run build`.
 
 ## Run the tests
@@ -172,5 +173,5 @@ The pgvector extension is enabled in Supabase for the RAG step.
 ## Status
 
 Done: project setup, database schema, Alembic, pgvector, backend APIs (Week 1, Days 3-4): conversations and messages endpoints, JWT cookie authentication with ownership checks, health endpoint, pytest suite (35 tests, incl. 8 stream tests with a fake Ollama). Frontend UI (Week 1, Day 5): login page, sidebar with past chats, chat window, new chat, delete with confirmation, Documents page layout, Vite proxy.
-Week 2 in progress: `POST /api/stream` streams Llama's answer as SSE (token, text so far, percentage), saves both messages with token counts, sends an error event if Ollama fails, and answers from company documents (RAG): `chunks` table with pgvector, `scripts/ingest_documents.py` to load `.txt`/`.md` files from `documents/`, `services/rag.py` to retrieve the closest chunks, source references saved with each answer. Next: the frontend streaming UI. Not installed yet: Docker.
+Week 2 in progress: `POST /api/stream` streams Llama's answer as SSE (token, text so far, percentage), saves both messages with token counts, sends an error event if Ollama fails, and answers from company documents (RAG): `chunks` table with pgvector, `scripts/ingest_documents.py` to load `.txt`/`.md` files from `documents/`, `services/rag.py` to retrieve the closest chunks, source references saved with each answer. The frontend streaming UI is done too (Week 2 Day 3: live answer, token count, Stop, error message). Next: Week 2 Day 4, export. Not installed yet: Docker.
 See [RAG_TODO.md](RAG_TODO.md) for the full checklist.

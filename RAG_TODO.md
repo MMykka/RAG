@@ -98,13 +98,13 @@ Items tagged **[stack]** were added to match the chosen tech stack (React + Vite
 
 ### Day 3: Frontend Streaming UI
 
-- [ ]  Connect to the SSE endpoint and display tokens as they arrive
-- [ ]  Show a progress/loading indicator with token count
-- [ ]  Disable the send button during streaming
-- [ ]  **[stack]** Build `hooks/useStream.js` using `fetch` + `ReadableStream` (POST, so not `EventSource`)
-- [ ]  **[stack]** Buffer partial chunks so an event split across network reads never breaks `JSON.parse`
-- [ ]  **[stack]** Add a Stop button using `AbortController`
-- [ ]  **[stack]** Show an error message in the UI when the stream fails
+- [x]  Connect to the SSE endpoint and display tokens as they arrive
+- [x]  Show a progress/loading indicator with token count
+- [x]  Disable the send button during streaming
+- [x]  **[stack]** Build `hooks/useStream.js` using `fetch` + `ReadableStream` (POST, so not `EventSource`)
+- [x]  **[stack]** Buffer partial chunks so an event split across network reads never breaks `JSON.parse`
+- [x]  **[stack]** Add a Stop button using `AbortController`
+- [x]  **[stack]** Show an error message in the UI when the stream fails
 
 ### Day 4: Export Feature
 

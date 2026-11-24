@@ -8,7 +8,8 @@
 //   conversations  list for the sidebar (newest updated first, from the API)
 //   active         the open conversation with its messages (or null)
 //   page           'home' or 'documents'
-import { useCallback, useEffect, useState } from 'react'
+//   stream         the answer being streamed right now (hooks/useStream.js)
+import { useCallback, useEffect, useRef, useState } from 'react'
 import Sidebar from '../components/Sidebar.jsx'
 import ChatWindow from '../components/ChatWindow.jsx'
 import DocumentsPage from './DocumentsPage.jsx'
@@ -16,10 +17,10 @@ import {
   listConversations,
   getConversation,
   createConversation,
-  saveMessage,
   deleteConversation,
 } from '../api/conversations.js'
 import { getHealth } from '../api/client.js'
+import useStream from '../hooks/useStream.js'
 
 export default function ChatPage({ user, onLogout, onSessionExpired }) {
   const [page, setPage] = useState('home')
@@ -30,6 +31,15 @@ export default function ChatPage({ user, onLogout, onSessionExpired }) {
   const [sending, setSending] = useState(false)
   const [error, setError] = useState(null)
   const [healthy, setHealthy] = useState(null)
+  const stream = useStream()
+
+  // The id of the open chat, readable inside a running send. If the user
+  // opens another chat while an answer streams, the late answer must not
+  // replace the chat they are looking at now.
+  const activeIdRef = useRef(null)
+  useEffect(() => {
+    activeIdRef.current = active?.id ?? null
+  }, [active?.id])
 
   // Shared error handling: 401 means the login cookie expired -> back to login
   const handleError = useCallback(
@@ -65,6 +75,7 @@ export default function ChatPage({ user, onLogout, onSessionExpired }) {
   // Click a chat in the sidebar -> load it with all its messages
   async function selectChat(id) {
     if (id === active?.id) return
+    stream.stop() // switching chats cancels an answer that is still arriving
     setError(null)
     setChatLoading(true)
     setActive({ id, messages: [] }) // highlight it in the sidebar right away
@@ -82,6 +93,7 @@ export default function ChatPage({ user, onLogout, onSessionExpired }) {
   // The POST already returns the new chat, so it is put at the top of the
   // sidebar list directly (no second request to reload the whole list).
   async function newChat() {
+    stream.stop()
     setError(null)
     try {
       const chat = await createConversation()
@@ -92,37 +104,57 @@ export default function ChatPage({ user, onLogout, onSessionExpired }) {
     }
   }
 
-  // Send button -> save the user's message. If no chat is open yet, create
-  // one first. (The AI's answer comes with streaming in Week 2.)
-  // Returns true on success so ChatWindow knows it can clear the input.
+  // Send button -> ask the AI. If no chat is open yet, create one first.
+  //   1. Show the question at once (a temporary copy until the server's is loaded).
+  //   2. Stream the answer: ChatWindow shows it growing token by token. The
+  //      server saves the question and, when it finishes, the full answer.
+  //   3. Load the saved messages (real ids, the answer with its sources).
+  // Returns true when the question went out, false if it never reached the
+  // server (then ChatWindow puts the text back in the input box).
   async function sendMessage(content) {
     setError(null)
     setSending(true)
+    let chat = active
     try {
-      let chat = active
       if (!chat) {
         chat = { ...(await createConversation()), messages: [] }
       }
-      const message = await saveMessage(chat.id, 'user', content)
-      setActive({ ...chat, messages: [...chat.messages, message] })
-
-      // Show first: move this chat to the top of the sidebar right away,
-      // using what we already know (no waiting for the server).
-      const { messages: _messages, ...summary } = chat // the sidebar does not need the messages
-      setConversations((list) => [
-        { ...summary, updated_at: message.created_at }, // this chat, with its new time...
-        ...list.filter((c) => c.id !== chat.id), // ...on top of all the others
-      ])
-
-      // Correct after: reload the real list from the database in the
-      // background. No "await", so the page does not wait for it.
-      refreshList()
-      return true
     } catch (err) {
       handleError(err)
-      return false
-    } finally {
       setSending(false)
+      return false
+    }
+
+    const now = new Date().toISOString()
+    const question = { id: `pending-${Date.now()}`, role: 'user', content, created_at: now }
+    activeIdRef.current = chat.id
+    setActive({ ...chat, messages: [...chat.messages, question] })
+
+    // Show first: move this chat to the top of the sidebar right away
+    const { messages: _messages, ...summary } = chat // the sidebar does not need the messages
+    setConversations((list) => [{ ...summary, updated_at: now }, ...list.filter((c) => c.id !== chat.id)])
+    setSending(false)
+
+    try {
+      const result = await stream.start(chat.id, content)
+      if (result.status === 'error') setError(result.error)
+
+      // Correct after: the chat as the database has it now
+      const saved = await getConversation(chat.id)
+      if (activeIdRef.current === chat.id) {
+        // A stopped answer is not saved; keep what had arrived on screen, marked as stopped
+        const extra = result.status === 'stopped' && result.text
+          ? [{ id: `stopped-${Date.now()}`, role: 'assistant', content: result.text, stopped: true }]
+          : []
+        setActive({ ...saved, messages: [...saved.messages, ...extra] })
+      }
+      refreshList() // background, no "await"
+      return true
+    } catch (err) {
+      // Never reached the stream (401 / 404 / no connection): take the question back off the screen
+      if (activeIdRef.current === chat.id) setActive(chat)
+      handleError(err)
+      return false
     }
   }
 
@@ -133,6 +165,7 @@ export default function ChatPage({ user, onLogout, onSessionExpired }) {
     setError(null)
     const before = conversations // remember the list, in case we need to undo
     const wasActive = active?.id === id ? active : null
+    if (wasActive) stream.stop() // its answer has nowhere to go any more
     setConversations((list) => list.filter((c) => c.id !== id))
     if (wasActive) setActive(null)
     try {
@@ -150,6 +183,10 @@ export default function ChatPage({ user, onLogout, onSessionExpired }) {
       conversation={active}
       loading={chatLoading}
       sending={sending}
+      streaming={stream.streaming}
+      streamText={stream.text}
+      streamTokens={stream.tokens}
+      onStop={stream.stop}
       error={error}
       healthy={healthy}
       userInitial={user.username[0].toUpperCase()}
