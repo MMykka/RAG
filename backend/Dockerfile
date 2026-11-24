@@ -25,9 +25,11 @@ COPY . .
 RUN useradd --create-home appuser
 USER appuser
 
-# The port uvicorn listens on.
+# The port Gunicorn listens on.
 EXPOSE 8000
 
 # Start the app. 0.0.0.0 = reachable from outside the container (localhost would only be the container itself).
-# Gunicorn + Uvicorn workers come in the next Go-Live item.
-CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
+# 2 Gunicorn processes, each a Uvicorn worker (async, so SSE streaming works). Gunicorn only runs on Linux;
+# on the Windows PCs the backend is still started with plain uvicorn.
+CMD ["gunicorn", "app.main:app", "-k", "uvicorn_worker.UvicornWorker", "--workers", "2", "--bind", "0.0.0.0:8000"]
+
