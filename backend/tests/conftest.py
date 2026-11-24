@@ -11,7 +11,7 @@ def db():
     # one transaction per test, undone at the end, so the database stays clean
     connection = engine.connect()
     transaction = connection.begin()
-    session = Session(bind=connection, join_transaction_mode="create_savepoint")
+    session = Session(bind=connection, join_transaction_mode="create_savepoint", expire_on_commit=False)  # same as SessionLocal in app/database.py
     yield session
     session.close()
     transaction.rollback()

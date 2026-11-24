@@ -1,6 +1,7 @@
 // Sidebar: left column of the app.
 //   1. Profile (avatar + username). Clicking it opens a small menu with "Log out".
-//   2. Navigation: Home (chat with the AI) and Documents (upload knowledge).
+//   2. Navigation: Home (chat with the AI), Documents (upload knowledge) and
+//      Stats (your usage numbers).
 //   3. CHATS: every past conversation (newest first) with a truncated title
 //      and a timestamp. Click one to open it; the trash icon deletes it
 //      after a confirmation dialog.
@@ -9,6 +10,7 @@ import { useState } from 'react'
 import {
   HomeIcon,
   DocumentsIcon,
+  StatsIcon,
   ChevronDownIcon,
   SettingsIcon,
   PlusIcon,
@@ -64,6 +66,12 @@ export default function Sidebar({
           onClick={() => onNavigate('documents')}
         >
           <DocumentsIcon /> Documents
+        </button>
+        <button
+          className={`nav__item ${page === 'stats' ? 'nav__item--active' : ''}`}
+          onClick={() => onNavigate('stats')}
+        >
+          <StatsIcon /> Stats
         </button>
       </nav>
 

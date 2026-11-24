@@ -20,7 +20,6 @@ def create_user(db:Session, data: CreateUser) -> User:
     user = User(username=data.username, email=data.email, password_hash=hashed_password)
     db.add(user)
     db.commit()
-    # db.refresh(user)
     return user
 
 

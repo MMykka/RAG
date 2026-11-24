@@ -80,4 +80,4 @@ Question: is the `chunks` table with an HNSW index (`ix_chunks_embedding`, `vect
 
 ## Open follow-ups
 
-- `backend/tests/conftest.py` builds its own `Session(...)` without `expire_on_commit=False`, so the tests do not run with the same setting as the app.
+- ~~`backend/tests/conftest.py` builds its own `Session(...)` without `expire_on_commit=False`, so the tests do not run with the same setting as the app.~~ **Done 2026-11-24** (Day 5 polish): the test session now uses `expire_on_commit=False` too; 48 tests pass.

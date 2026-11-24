@@ -117,22 +117,22 @@ Items tagged **[stack]** were added to match the chosen tech stack (React + Vite
 
 ### Day 5: Basic Analytics & Polish
 
-- [ ]  `GET /api/users/:id/stats` endpoint
-- [ ]  Stats: total conversations, total tokens used, average tokens per message
-- [ ]  Simple dashboard page showing the stats (no fancy charting)
-- [ ]  Polish and fix issues
-- [ ]  **[stack]** Compute stats with SQLAlchemy aggregates (`func.count`, `func.sum`, `func.avg`)
-- [ ]  **[stack]** Only allow a user to read their own stats
-- [ ]  **[stack]** Build `StatsPage` and `StatsDashboard` components
+- [x]  `GET /api/users/:id/stats` endpoint
+- [x]  Stats: total conversations, total tokens used, average tokens per message
+- [x]  Simple dashboard page showing the stats (no fancy charting)
+- [x]  Polish and fix issues
+- [x]  **[stack]** Compute stats with SQLAlchemy aggregates (`func.count`, `func.sum`, `func.avg`)
+- [x]  **[stack]** Only allow a user to read their own stats
+- [x]  **[stack]** Build `StatsPage` and `StatsDashboard` components
 
 ### Week 2 Deliverables
 
-- [ ]  Streaming endpoint working end-to-end
-- [ ]  Frontend displays tokens in real time
-- [ ]  Export to Markdown and JSON working
-- [ ]  Basic analytics dashboard with user stats
-- [ ]  **[stack]** RAG answers use retrieved document chunks from pgvector
-- [ ]  **[stack]** Streaming, export and stats covered by `pytest` tests
+- [x]  Streaming endpoint working end-to-end
+- [x]  Frontend displays tokens in real time
+- [x]  Export to Markdown and JSON working
+- [x]  Basic analytics dashboard with user stats
+- [x]  **[stack]** RAG answers use retrieved document chunks from pgvector
+- [x]  **[stack]** Streaming, export and stats covered by `pytest` tests
 
 ---
 

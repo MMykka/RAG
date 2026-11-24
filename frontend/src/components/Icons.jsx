@@ -105,6 +105,15 @@ export const SendIcon = (p) => (
   </Icon>
 )
 
+// Stats: three bars of different heights (the Stats page)
+export const StatsIcon = (p) => (
+  <Icon {...p}>
+    <path d="M6 20V14" />
+    <path d="M12 20V4" />
+    <path d="M18 20v-9" />
+  </Icon>
+)
+
 // Download: arrow into a tray (export the open chat)
 export const DownloadIcon = (p) => (
   <Icon {...p}>

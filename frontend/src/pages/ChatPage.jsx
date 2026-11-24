@@ -3,16 +3,18 @@
 //
 //   [ Sidebar ] [ Home:      ChatWindow (full width)            ]
 //               [ Documents: DocumentsPage | ChatWindow (right) ]
+//               [ Stats:     StatsPage (full width)             ]
 //
 // State kept here:
 //   conversations  list for the sidebar (newest updated first, from the API)
 //   active         the open conversation with its messages (or null)
-//   page           'home' or 'documents'
+//   page           'home', 'documents' or 'stats'
 //   stream         the answer being streamed right now (hooks/useStream.js)
 import { useCallback, useEffect, useRef, useState } from 'react'
 import Sidebar from '../components/Sidebar.jsx'
 import ChatWindow from '../components/ChatWindow.jsx'
 import DocumentsPage from './DocumentsPage.jsx'
+import StatsPage from './StatsPage.jsx'
 import {
   listConversations,
   getConversation,
@@ -212,6 +214,10 @@ export default function ChatPage({ user, onLogout, onSessionExpired }) {
 
       {page === 'home' ? (
         <main className="main main--home">{chatWindow}</main>
+      ) : page === 'stats' ? (
+        <main className="main main--stats">
+          <StatsPage user={user} onSessionExpired={onSessionExpired} />
+        </main>
       ) : (
         <main className="main main--documents">
           <DocumentsPage />

@@ -1,4 +1,4 @@
-# Stream router: POST /api/stream (SSE), comes in Week 2 Streaming Backend
+# Stream router: POST /api/stream (SSE): retrieves document chunks, streams Llama's answer, saves both messages
 from fastapi import APIRouter
 from fastapi.responses import StreamingResponse
 import json
