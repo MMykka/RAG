@@ -202,6 +202,16 @@ Items tagged **[stack]** were added to match the chosen tech stack (React + Vite
 
 ---
 
+## Documents Page (added 2026-11-24, done last)
+
+The Documents page exists as a layout only. Documents are loaded with `scripts/ingest_documents.py` for now.
+
+- [ ]  `GET /api/documents`: list the documents in the knowledge base (name, chunks, date added, size), login required
+- [ ]  Documents page shows the real list from `GET /api/documents` (empty state when there are none)
+- [ ]  Fix the upload panel text so it does not promise what is not built yet
+
+---
+
 ## Notes
 
 - Database: PostgreSQL on Supabase via SQLAlchemy and Alembic (SQLite remains fine for early local development, since only the connection URI changes).
