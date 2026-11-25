@@ -184,3 +184,18 @@ def test_message_validation(make_client):
     assert alice.post(url, json={"role": "user", "content": ""}).status_code == 422
     assert alice.post(url, json={"role": "user"}).status_code == 422
     assert alice.post(url, json={"role": "user", "content": "x", "tokens_used": -1}).status_code == 422
+
+
+# ---------- deleted account ----------
+
+def test_deleted_user_token(make_client, db):
+    # Endpoints trust the signed token (no user lookup), so check what a deleted account's token can still do
+    alice = make_client("alice")
+    chat_id = alice.post(URL, json={"title": "mine"}).json()["id"]
+    db.execute(text("DELETE FROM users WHERE username = 'alice'"))  # chats and messages go with it (CASCADE)
+    db.commit()  # ends this savepoint only; the whole test is still rolled back afterwards
+
+    assert alice.get("/api/auth/me").status_code == 401        # page load logs them out
+    assert alice.post(URL, json={}).status_code == 401         # creating a chat is refused, not a 500
+    assert alice.get(URL).json() == []                         # nothing left to list
+    assert alice.get(f"{URL}/{chat_id}").status_code == 404    # the old chat is gone

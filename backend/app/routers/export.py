@@ -7,8 +7,7 @@ from fastapi.responses import Response
 from sqlalchemy.orm import Session
 
 from app.database import get_db
-from app.dependencies import get_current_user
-from app.models.user import User
+from app.dependencies import get_current_user_id
 from app.routers.conversations import get_chat_or_404
 from app.services import export
 
@@ -22,10 +21,10 @@ def export_chat(
     conversation_id: int,
     format: Literal["md", "json"] = Query("md"),
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
+    user_id: int = Depends(get_current_user_id),
 ):
     # Ownership first: another user's chat (or a missing one) is a 404, like everywhere else
-    conversation = get_chat_or_404(db, current_user.id, conversation_id)
+    conversation = get_chat_or_404(db, user_id, conversation_id, with_messages=True)
     content = export.to_markdown(conversation) if format == "md" else export.to_json(conversation)
 
     # "attachment" tells the browser to download the file instead of showing it

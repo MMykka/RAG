@@ -8,8 +8,7 @@ from app.schemas.stream import StreamRequest
 from sqlalchemy.orm import Session
 from fastapi import Depends
 from app.database import get_db
-from app.dependencies import get_current_user
-from app.models.user import User
+from app.dependencies import get_current_user_id
 from app.config import settings
 from app.repositories.conversations import save_message
 from app.schemas.conversations import MessageCreate, SourceRef
@@ -19,9 +18,9 @@ from app.services.rag import retrieve_chunks, build_prompt
 router = APIRouter(prefix="/api/stream", tags=["stream"])
 
 @router.post("")
-def stream(data: StreamRequest, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+def stream(data: StreamRequest, db: Session = Depends(get_db), user_id: int = Depends(get_current_user_id)):
     
-    conversation = get_chat_or_404(db, current_user.id, data.conversation_id)
+    conversation = get_chat_or_404(db, user_id, data.conversation_id)
     user_msg = save_message(db, conversation, MessageCreate(role="user", content=data.content))
 
     def events():
