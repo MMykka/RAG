@@ -25,8 +25,9 @@ def stream_chat(messages: list[dict], usage: dict) -> Iterator[str]:
 
         return 
 
+    # Olama call
     stream = client.chat(model=settings.ollama_model, messages=messages, stream=True, options={"num_predict": settings.ollama_max_tokens})
-       
+
     for chunk in stream:
         piece = chunk.message.content
         # The last chunk (done=True) has empty text, so skip empty pieces.

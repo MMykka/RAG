@@ -140,11 +140,11 @@ Items tagged **[stack]** were added to match the chosen tech stack (React + Vite
 
 ### Containers & Proxy
 
-- [ ]  **[stack]** Write a `Dockerfile` for the backend
-- [ ]  **[stack]** Write `docker-compose.yml` with services: backend, nginx, redis (and Ollama or vLLM)
-- [ ]  **[stack]** Run the backend with Gunicorn + Uvicorn workers (`k uvicorn.workers.UvicornWorker`)
-- [ ]  **[stack]** Build the React app (`npm run build`) and serve it from Nginx
-- [ ]  **[stack]** Write `nginx.conf`: route `/` to React and `/api/` to FastAPI
+- [x]  **[stack]** Write a `Dockerfile` for the backend
+- [x]  **[stack]** Write `docker-compose.yml` with services: backend, nginx, redis (and Ollama or vLLM)
+- [x]  **[stack]** Run the backend with Gunicorn + Uvicorn workers (`k uvicorn.workers.UvicornWorker`)
+- [x]  **[stack]** Build the React app (`npm run build`) and serve it from Nginx
+- [x]  **[stack]** Write `nginx.conf`: route `/` to React and `/api/` to FastAPI
 - [ ]  **[stack]** Set `proxy_buffering off` and `proxy_read_timeout 300s` on `/api/stream` so SSE works
 - [ ]  **[stack]** Set up HTTPS (certbot or a company-supplied certificate) and redirect HTTP to HTTPS
 - [ ]  **[stack]** Set request size limits and `limit_req` throttling in Nginx
