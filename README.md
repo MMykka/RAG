@@ -8,9 +8,10 @@ See [RAG_Tech_Stack.md](RAG_Tech_Stack.md) for the full stack and layout, and [R
 ## Project layout
 
 ```
-backend/    FastAPI app (app/), Alembic migrations (alembic/), tests
-frontend/   React + Vite app
+backend/    FastAPI app (app/), Alembic migrations (alembic/), tests, Dockerfile
+frontend/   React + Vite app, Dockerfile (builds the app and serves it with Nginx)
 nginx/      Nginx config (go-live)
+docker-compose.yml   backend + nginx + redis (go-live)
 ```
 
 ## Set up on a new PC
@@ -117,7 +118,7 @@ Open http://localhost:5173, create an account on the login page (or log in), and
 
 - The Vite proxy (`frontend/vite.config.js`) forwards every `/api/...` call to `http://localhost:8000`, so the browser sees one origin and the login cookie just works. No CORS setup is needed.
 - `src/api/`: all fetch calls (`client.js` shared helper + health, `auth.js`, `conversations.js`, `stream.js` = `POST /api/stream` read with a `ReadableStream`, partial events buffered).
-- `src/hooks/useStream.js`: state of the answer being streamed (text so far, token count) plus `start` / `stop` (`AbortController`). Answers appear word by word with "Thinking…" / "Writing · N tokens" under them; the send button is disabled and a Stop button shows while an answer streams; a stopped answer stays on screen marked "Stopped · not saved"; stream errors show above the input box.
+- `src/hooks/useStream.js`: state of the answer being streamed (text so far, token count) plus `start` / `stop` (`AbortController`). Answers appear word by word with "Thinking…" / "Writing · N tokens" under them; while an answer streams the send button turns into a Stop button (sending is blocked); a stopped answer stays on screen marked "Stopped · not saved"; stream errors show above the input box.
 - `src/components/`: `Sidebar`, `ChatWindow`, `MessageBubble`, `Icons` (inline SVGs).
 - `src/pages/`: `LoginPage`, `ChatPage` (holds the state, calls the API), `DocumentsPage` (upload panel; layout only, see the Documents Page section in `RAG_TODO.md`), `StatsPage` (your usage, via `src/api/stats.js` and `components/StatsDashboard`).
 - Styles: `src/index.css`, with every colour, font and size in `src/tokens.css`.
@@ -132,6 +133,23 @@ From `backend/`:
 ```
 
 The tests run against the real Supabase database, but each test runs inside a transaction that is rolled back, so nothing is left behind. They need internet and a filled-in `.env`, and take under a minute. Ollama is not needed: `tests/test_stream.py` replaces it with a fake (pytest `monkeypatch`), and a safety net makes any accidental call to the real Ollama fail.
+
+## Run with Docker (go-live, not tested yet)
+
+For the live server only; on the PCs keep using uvicorn and `npm run dev` as above. Needs Docker (Docker Desktop on Windows). Written but not built yet, because no PC has Docker so far.
+
+From the project root:
+
+```powershell
+docker compose up -d --build   # build and start backend, nginx, redis
+docker compose logs backend    # backend output
+docker compose down            # stop
+```
+
+- `backend/Dockerfile`: Python 3.12, runs Gunicorn with 2 Uvicorn workers (`uvicorn-worker`) on port 8000. Gunicorn only runs on Linux, which the container is.
+- `frontend/Dockerfile`: Node builds the React app, then Nginx serves `dist/`.
+- `nginx/nginx.conf`: `/` serves the React app, `/api/` goes to the backend. Only Nginx is open to the outside (port 80).
+- Settings come from the root `.env` when the containers start (never copied into an image). Ollama is not in Docker for now: the backend reaches the host's Ollama at `host.docker.internal:11434`.
 
 ## Database migrations (Alembic)
 
@@ -174,6 +192,7 @@ The pgvector extension is enabled in Supabase for the RAG step.
 
 ## Status
 
-Done: project setup, database schema, Alembic, pgvector, backend APIs (Week 1, Days 3-4): conversations and messages endpoints, JWT cookie authentication with ownership checks, health endpoint, pytest suite (48 tests, incl. 8 stream tests with a fake Ollama, 8 export tests and 5 stats tests). Frontend UI (Week 1, Day 5): login page, sidebar with past chats, chat window, new chat, delete with confirmation, Documents page layout, Vite proxy.
-Week 2 in progress: `POST /api/stream` streams Llama's answer as SSE (token, text so far, percentage), saves both messages with token counts, sends an error event if Ollama fails, and answers from company documents (RAG): `chunks` table with pgvector, `scripts/ingest_documents.py` to load `.txt`/`.md` files from `documents/`, `services/rag.py` to retrieve the closest chunks, source references saved with each answer. The frontend streaming UI is done too (Week 2 Day 3: live answer, token count, Stop, error message). Export is done too (Week 2 Day 4): `GET /api/conversations/{id}/export?format=md|json` downloads a chat as Markdown or JSON, from the download button in the chat header. Stats: `GET /api/users/{id}/stats` returns your total conversations, total tokens and average tokens per message (only your own id; another id gives 403). The Stats page (sidebar "Stats") shows them as three tiles. Week 2 Day 5 is done; next: the Week 2 Deliverables check. Not installed yet: Docker.
+Done: project setup, database schema, Alembic, pgvector, backend APIs (Week 1, Days 3-4): conversations and messages endpoints, JWT cookie authentication with ownership checks, health endpoint, pytest suite (55 tests, incl. 8 stream tests with a fake Ollama, 8 export tests, 5 stats tests and 7 ingest tests). Frontend UI (Week 1, Day 5): login page, sidebar with past chats, chat window, new chat, delete with confirmation, Documents page layout, Vite proxy.
+Week 2 complete: `POST /api/stream` streams Llama's answer as SSE (token, text so far, percentage), saves both messages with token counts, sends an error event if Ollama fails, and answers from company documents (RAG): `chunks` table with pgvector, `scripts/ingest_documents.py` to load `.txt`/`.md` files from `documents/`, `services/rag.py` to retrieve the closest chunks, source references saved with each answer. The frontend streaming UI is done too (Week 2 Day 3: live answer, token count, Stop, error message). Export is done too (Week 2 Day 4): `GET /api/conversations/{id}/export?format=md|json` downloads a chat as Markdown or JSON, from the download button in the chat header. Stats: `GET /api/users/{id}/stats` returns your total conversations, total tokens and average tokens per message (only your own id; another id gives 403). The Stats page (sidebar "Stats") shows them as three tiles. Logins last 8 hours.
+Go-Live in progress: backend and frontend Dockerfiles, `docker-compose.yml`, Gunicorn and `nginx.conf` routing are written but not built yet (no Docker installed so far); next: streaming settings for `/api/stream` in Nginx.
 See [RAG_TODO.md](RAG_TODO.md) for the full checklist.
