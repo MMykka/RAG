@@ -18,6 +18,7 @@ services:
       # Inside a container "localhost" is the container itself, so point at the host machine instead.
       # This overrides any OLLAMA_HOST in .env.
       OLLAMA_HOST: http://host.docker.internal:11434
+      REDIS_URL: redis://redis:6379/0
     extra_hosts:
       # Docker Desktop (Windows/Mac) knows host.docker.internal already; this line makes it work on Linux too.
       - "host.docker.internal:host-gateway"

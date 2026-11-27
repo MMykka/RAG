@@ -6,9 +6,9 @@ from app.services.llm import stream_chat
 from app.routers.conversations import get_chat_or_404
 from app.schemas.stream import StreamRequest
 from sqlalchemy.orm import Session
-from fastapi import Depends
+from fastapi import Depends, Request
 from app.database import get_db
-from app.dependencies import get_current_user_id
+from app.dependencies import get_current_user_id, limiter
 from app.config import settings
 from app.repositories.conversations import save_message
 from app.schemas.conversations import MessageCreate, SourceRef
@@ -18,7 +18,9 @@ from app.services.rag import retrieve_chunks, build_prompt
 router = APIRouter(prefix="/api/stream", tags=["stream"])
 
 @router.post("")
-def stream(data: StreamRequest, db: Session = Depends(get_db), user_id: int = Depends(get_current_user_id)):
+# at most 20 questions per minute per user (counted by user_or_ip in dependencies.py); the 21st gets 429
+@limiter.limit("20/minute")
+def stream(request: Request, data: StreamRequest, db: Session = Depends(get_db), user_id: int = Depends(get_current_user_id)):
     
     conversation = get_chat_or_404(db, user_id, data.conversation_id)
     user_msg = save_message(db, conversation, MessageCreate(role="user", content=data.content))

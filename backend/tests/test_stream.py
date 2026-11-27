@@ -170,3 +170,19 @@ def test_stream_empty_content_422(make_client, fake_ollama):
 def test_stream_no_login_401(client, fake_ollama):
     assert ask(client, 1).status_code == 401
     assert fake_ollama == []
+
+
+def test_stream_rate_limit_per_user(make_client, fake_ollama):
+    # 20 questions per minute per user: the 21st gets 429, and another user is not affected
+    alice = make_client("alice")
+    chat_id = new_chat(alice)
+    for _ in range(20):
+        assert ask(alice, chat_id).status_code == 200
+
+    blocked = ask(alice, chat_id)
+    assert blocked.status_code == 429
+    assert blocked.json() == {"detail": "Too many questions. Please wait a minute and try again."}
+    assert len(fake_ollama) == 20  # Llama was not asked the 21st time
+
+    bob = make_client("bob")
+    assert ask(bob, new_chat(bob)).status_code == 200  # bob has a separate counter

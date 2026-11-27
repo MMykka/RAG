@@ -10,4 +10,6 @@ PyJWT
 pwdlib[argon2]
 gunicorn
 uvicorn-worker
+redis
+slowapi
 

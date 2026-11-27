@@ -3,7 +3,16 @@ from fastapi.testclient import TestClient
 from sqlalchemy.orm import Session
 
 from app.database import engine, get_db
+from app.dependencies import limiter
 from app.main import app
+
+
+@pytest.fixture(autouse=True)
+def reset_rate_limits():
+    # every test starts with empty rate-limit counters (pytest uses the in-memory store, not Redis)
+    limiter.reset()
+    yield
+    limiter.reset()
 
 
 @pytest.fixture
