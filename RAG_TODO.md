@@ -167,7 +167,7 @@ Items tagged **[stack]** were added to match the chosen tech stack (React + Vite
 - [ ]  **[stack]** Run Uptime Kuma and monitor `/api/health` with alerts
 - [x]  **[stack]** Log latency, tokens and errors per request
 - [ ]  **[stack]** Confirm database backups (Supabase plan or scheduled `pg_dump`)
-- [ ]  **[stack]** Move all secrets to environment variables or a secrets manager
+- [x]  **[stack]** Move all secrets to environment variables or a secrets manager
 
 ### Pre-Launch Testing
 

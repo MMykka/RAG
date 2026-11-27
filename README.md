@@ -151,6 +151,31 @@ docker compose down            # stop
 - `nginx/nginx.conf`: `/` serves the React app, `/api/` goes to the backend. Only Nginx is open to the outside (port 80).
 - Settings come from the root `.env` when the containers start (never copied into an image). Ollama is not in Docker for now: the backend reaches the host's Ollama at `host.docker.internal:11434`.
 
+## Secrets
+
+All secrets live in the root `.env` file, one per machine, and nowhere else. It is gitignored and never committed, and the Docker images never contain it: `docker compose` passes it to the backend as environment variables when the container starts (`env_file: .env`). `app/config.py` reads every setting from those environment variables, and the backend refuses to start without `SECRET_KEY`. A secrets manager (Vault, a cloud service) was considered and not needed for one server.
+
+| Secret | What it protects | Where it comes from |
+|---|---|---|
+| `DATABASE_URL_DIRECT`, `DATABASE_URL` | the database (both hold the Supabase password) | Supabase dashboard > Connect |
+| `SECRET_KEY` | the login tokens (anyone with it could log in as any user) | generated on each machine: `python -c "import secrets; print(secrets.token_hex(32))"` |
+| `SENTRY_DSN` | sending error reports to the Sentry project | Sentry > Project settings > Client Keys (DSN) |
+
+`.env.example` shows every setting with placeholders only. Never paste real values into it, the code, a commit, a chat or a screenshot.
+
+### On the live server
+
+- Generate a **new `SECRET_KEY` on the server**; never copy the one from a development PC (a login token made on a PC would otherwise also work on the live site).
+- Make `.env` readable only by the account that runs Docker: on Linux `chmod 600 .env`; on Windows remove every user except that account and Administrators in the file's Security settings.
+- Set `COOKIE_SECURE=true` once the site has HTTPS, and `SENTRY_ENVIRONMENT=production`.
+- Backups in `backups/` contain every user and chat: keep them as private as `.env`, and copy them only to company storage.
+
+### If a secret leaks
+
+- **Database password:** Supabase > Project settings > Database > Reset database password, then update it in both URLs in every `.env` and restart the backend.
+- **`SECRET_KEY`:** generate a new one and restart the backend. Every login token stops working, so everyone has to log in again.
+- **Sentry DSN:** create a new client key in Sentry, delete the old one, and update `SENTRY_DSN`.
+
 ## Database migrations (Alembic)
 
 Alembic keeps the database tables in sync with the models in `backend/app/models/`. You only need it when the **structure** changes (a new table or column). Saving users, chats and messages is normal app code and needs no migration.
