@@ -11,7 +11,31 @@ from slowapi.errors import RateLimitExceeded
 from app.dependencies import limiter
 import sentry_sdk
 from app.config import settings
+import logging, time
 
+logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s %(message)s")
+log = logging.getLogger("rag")
+
+class RequestLogMiddleware:
+    def __init__(self, app):
+        self.app = app
+
+    async def __call__(self, scope, receive, send):
+        if scope["type"] != "http":
+            return await self.app(scope, receive, send)
+        start = time.perf_counter()
+        status = {"code": 500}
+
+        async def send_and_remember_status(message):
+            if message["type"] == "http.response.start":
+                status["code"] = message["status"]
+            await send(message)
+
+        try:
+            await self.app(scope, receive, send_and_remember_status)
+        finally:
+            ms = (time.perf_counter() - start) * 1000
+            log.info("request method=%s path=%s status=%s ms=%.0f", scope["method"], scope["path"], status["code"], ms)
 
 if settings.sentry_dsn:
     sentry_sdk.init(
@@ -30,6 +54,8 @@ if settings.sentry_dsn:
     )
     
 app = FastAPI()
+
+app.add_middleware(RequestLogMiddleware)
 
 # slowapi looks for the limiter here when an endpoint has @limiter.limit(...)
 app.state.limiter = limiter

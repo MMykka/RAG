@@ -16,7 +16,9 @@ from app.schemas.conversations import MessageCreate, SourceRef
 from app.services.rag import retrieve_chunks, build_prompt
 from app.services.cache import take_slot, release_slot, invalidate_user
 import sentry_sdk
+import logging, time
 
+log = logging.getLogger("rag")
 
 router = APIRouter(prefix="/api/stream", tags=["stream"])
 
@@ -69,6 +71,8 @@ def stream(request: Request, data: StreamRequest, db: Session = Depends(get_db),
         release_once()
 
     def answer_events():
+        started = time.perf_counter()
+        first_token_ms = None
         text = ""
         count = 0
         usage = {}
@@ -80,7 +84,8 @@ def stream(request: Request, data: StreamRequest, db: Session = Depends(get_db),
             stream = stream_chat(messages, usage)
 
             for piece in stream:
-
+                if first_token_ms is None:
+                    first_token_ms = round((time.perf_counter() - started) * 1000)
                 text += piece
                 count += 1
                 percent = min(99, round(count / settings.ollama_max_tokens * 100))
@@ -88,7 +93,7 @@ def stream(request: Request, data: StreamRequest, db: Session = Depends(get_db),
                 yield f"data: {json.dumps({'token': piece, 'text': text, 'percent': percent})}\n\n"
         except Exception as e:
             sentry_sdk.capture_exception(e)
-            print("Stream Failed", e)
+            log.warning("answer user=%s chat=%s outcome=error error=%s first_token_ms=%s", user_id, conversation.id, type(e).__name__, first_token_ms)
             yield f"data: {json.dumps({'error': 'The AI stopped answering. Please try again.', 'text': text})}\n\n"
             return 
 
@@ -98,6 +103,9 @@ def stream(request: Request, data: StreamRequest, db: Session = Depends(get_db),
             save_message(db, conversation, MessageCreate(role="assistant", content=text, tokens_used=usage.get("answer"), sources=sources or None))
             invalidate_user(user_id)  # new token counts: drop the cached stats (and list)
 
+        log.info("answer user=%s chat=%s outcome=done first_token_ms=%s total_ms=%.0f prompt_tokens=%s answer_tokens=%s chunks=%s",
+        user_id, conversation.id, first_token_ms, (time.perf_counter() - started) * 1000,
+        usage.get("prompt"), usage.get("answer"), len(chunks))
         
         yield f"data: {json.dumps({'done': True, 'text': text, 'percent': 100, 'sources': [s.model_dump() for s in sources]})}\n\n"
 

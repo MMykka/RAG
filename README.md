@@ -142,7 +142,7 @@ From the project root:
 
 ```powershell
 docker compose up -d --build   # build and start backend, nginx, redis
-docker compose logs backend    # backend output
+docker compose logs backend    # backend output (one "rag request ..." line per request, one "rag answer ..." line per AI answer)
 docker compose down            # stop
 ```
 
