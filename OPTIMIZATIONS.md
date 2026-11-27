@@ -13,10 +13,11 @@ Newest at the bottom. "Trip" = one round trip between the backend and the databa
 | 4 | 2026-11-12 | Frontend | Send and delete update the screen first, check with the database after | `frontend/src/pages/ChatPage.jsx` | Sidebar updates instantly; the list reload no longer blocks |
 | 5 | 2026-11-25 | Backend | `pool_pre_ping=True` -> `pool_recycle=300` (no connection test trip before each request) | `backend/app/database.py` | On the alexm PC (~237 ms trip): me 445 -> 337 ms, list 602 -> 369 ms, open chat 638 -> 472 ms, stats 601 -> 471 ms |
 | 6 | 2026-11-25 | Backend | One query per request: trust the login token (no user lookup), chat + messages in one query, one stats query | `backend/app/dependencies.py`, `backend/app/routers/*.py`, `backend/app/repositories/conversations.py`, `backend/app/repositories/stats.py` | Same network (~70 ms trip): list 313 -> 209 ms, open chat 391 -> 215 ms, stats 329 -> 204 ms (2-3 queries -> 1) |
+| 7 | 2026-11-27 | Database | App connects through the Supabase Transaction pooler (6543) instead of the Session pooler (5432) | root `.env` (`DATABASE_URL`), `.env.example` | 25 parallel connections: 6 ok / 19 refused -> 25/25 ok; 40 parallel health checks: 5 x 503 -> 0; trip unchanged (62 vs 63 ms) |
 
 **Backend changes:** #3 (`expire_on_commit=False`, no `db.refresh`, `passive_deletes=True`), #5 (`pool_recycle` instead of `pool_pre_ping`), #6 (one query per request).
 **Frontend changes:** #2 ("+" without reload) and #4 (show first, correct after on send and delete).
-**Database / hosting:** #1 (Paris region).
+**Database / hosting:** #1 (Paris region), #7 (Transaction pooler for the app).
 
 ## 1. Database: moved closer (Tokyo -> Paris)
 
@@ -70,6 +71,12 @@ Newest at the bottom. "Trip" = one round trip between the backend and the databa
 - **Result** (same PC and network, ~70 ms trip, old code vs new code back to back): me 225 -> 204 ms, list 313 -> 209 ms (2 -> 1 queries), open chat 391 -> 215 ms (3 -> 1), stats 329 -> 204 ms (3 -> 1). pytest 56 passed.
 - **Trade-off (accepted by the user):** a deleted user's token keeps working until it expires (8 h). Checked: `/me` gives 401, so the page logs them out on load; the list is empty and their old chats give 404 (CASCADE removed them); creating a chat gives 401 instead of a 500 (the `IntegrityError` is caught). New test `test_deleted_user_token`.
 - **What is left per request:** the one query, plus the `ROLLBACK` SQLAlchemy sends when it returns the connection to the pool (another trip, not counted above). Skipping that reset (`pool_reset_on_return=None`) was not done: a connection could then be handed on in an unfinished transaction.
+
+## 7. Database: Transaction pooler for the app (2026-11-27)
+
+- **Problem:** 40 parallel `/api/health` requests through Nginx gave 5 x 503. Inside the backend container, 25 parallel connections gave 6 ok and 19 `EMAXCONNSESSION max clients reached in session mode - max clients are limited to pool_size: 15`. The app used `DATABASE_URL_DIRECT` (Session pooler, port 5432), where every open connection holds one of 15 slots shared by every Gunicorn worker, PC, test run and script.
+- **Change:** new `DATABASE_URL` in root `.env` = the same Supabase string on port 6543 (Transaction pooler: a database connection is only held for one transaction). `config.py` already used `DATABASE_URL` when set, so no code changed. Alembic keeps `DATABASE_URL_DIRECT` (5432) for migrations. Nothing in the app needs session features (`SET`, `LISTEN`, temp tables, advisory locks; psycopg2 uses no prepared statements).
+- **Result:** 25 parallel connections 25/25 ok; 40 parallel health checks all 200; `SELECT 1` median 62 ms (5432) vs 63 ms (6543), so single requests are not faster or slower; pytest 56 passed. Matters for the 30-concurrent-chat load test. The other PCs need the `DATABASE_URL` line in their own `.env`.
 
 ## Ideas not done (yet)
 

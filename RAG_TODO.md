@@ -147,7 +147,7 @@ Items tagged **[stack]** were added to match the chosen tech stack (React + Vite
 - [x]  **[stack]** Write `nginx.conf`: route `/` to React and `/api/` to FastAPI
 - [x]  **[stack]** Set `proxy_buffering off` and `proxy_read_timeout 300s` on `/api/stream` so SSE works
 - [ ]  **[stack]** Set up HTTPS (certbot or a company-supplied certificate) and redirect HTTP to HTTPS
-- [ ]  **[stack]** Set request size limits and `limit_req` throttling in Nginx
+- [x]  **[stack]** Set request size limits and `limit_req` throttling in Nginx
 
 ### Redis: Limits & Caching
 
