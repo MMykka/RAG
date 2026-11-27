@@ -153,8 +153,8 @@ Items tagged **[stack]** were added to match the chosen tech stack (React + Vite
 
 - [x]  **[stack]** Rate limit `/api/stream` per user (e.g. 20 requests per minute)
 - [x]  **[stack]** Cap concurrent generations across all workers with a shared Redis counter
-- [ ]  **[stack]** Return a clear “server busy, try again” message when the cap is reached
-- [ ]  **[stack]** Cache the conversation list and stats with a TTL, and invalidate on changes
+- [x]  **[stack]** Return a clear “server busy, try again” message when the cap is reached
+- [x]  **[stack]** Cache the conversation list and stats with a TTL, and invalidate on changes
 
 ### LLM Serving
 

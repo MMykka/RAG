@@ -198,7 +198,8 @@ def test_stream_busy_503(make_client, fake_ollama, monkeypatch):
 
     response = ask(alice, chat_id)
     assert response.status_code == 503
-    assert response.json() == {"detail": "The server is busy. Please try again."}
+    assert response.json() == {"detail": "The AI is busy answering other questions right now. Your question was not sent. Please try again in a few seconds."}
+    assert response.headers["retry-after"] == "10"
     assert fake_ollama == []
     assert alice.get(f"/api/conversations/{chat_id}").json()["messages"] == []
 

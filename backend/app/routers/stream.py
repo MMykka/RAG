@@ -14,7 +14,7 @@ from app.config import settings
 from app.repositories.conversations import save_message
 from app.schemas.conversations import MessageCreate, SourceRef
 from app.services.rag import retrieve_chunks, build_prompt
-from app.services.cache import take_slot, release_slot
+from app.services.cache import take_slot, release_slot, invalidate_user
 
 
 router = APIRouter(prefix="/api/stream", tags=["stream"])
@@ -28,13 +28,18 @@ def stream(request: Request, data: StreamRequest, db: Session = Depends(get_db),
     # Only MAX_GENERATIONS answers may be written at the same time (shared Redis counter, services/cache.py).
     # No free slot: refuse before anything is saved or Llama is called.
     if not take_slot():
-        raise HTTPException(status_code=503, detail="The server is busy. Please try again.")
+        raise HTTPException(
+            status_code=503,
+            detail="The AI is busy answering other questions right now. Your question was not sent. Please try again in a few seconds.",
+            headers={"Retry-After": "10"},
+        )
 
     try:
         user_msg = save_message(db, conversation, MessageCreate(role="user", content=data.content))
     except Exception:
         release_slot()  # the answer will never start, so give the slot back now
         raise
+    invalidate_user(user_id)  # the chat moved to the top of the list: drop the cached list and stats
 
     released = False
 
@@ -89,6 +94,7 @@ def stream(request: Request, data: StreamRequest, db: Session = Depends(get_db),
         if text:
             user_msg.tokens_used = usage.get("prompt")
             save_message(db, conversation, MessageCreate(role="assistant", content=text, tokens_used=usage.get("answer"), sources=sources or None))
+            invalidate_user(user_id)  # new token counts: drop the cached stats (and list)
 
         
         yield f"data: {json.dumps({'done': True, 'text': text, 'percent': 100, 'sources': [s.model_dump() for s in sources]})}\n\n"

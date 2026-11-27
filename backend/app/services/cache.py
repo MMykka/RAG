@@ -1,7 +1,8 @@
 import threading
 import redis
 from app.config import settings
-
+import json
+import time
 KEY = "llm:active"
 # Safety net: if the backend crashes mid-answer and never releases its slot, the counter
 # disappears after this many seconds without any new question (same as Nginx's proxy_read_timeout).
@@ -50,3 +51,52 @@ def active_generations() -> int:
     if _redis:
         return int(_redis.get(KEY) or 0)
     return _local_count
+
+
+# ---- Cache for the chat list and stats (one entry per user) ----
+CACHE_TTL_SECONDS = 60
+_local_cache = {}  # without Redis: user key -> (expires_at, {field: value})
+
+
+def _user_key(user_id: int) -> str:
+    return f"cache:user:{user_id}"
+
+
+def cache_get(user_id: int, field: str):
+    key = _user_key(user_id)
+    if _redis:
+        raw = _redis.hget(key, field)
+        return json.loads(raw) if raw is not None else None
+    with _lock:
+        entry = _local_cache.get(key)
+        if entry is None or entry[0] < time.monotonic():
+            return None
+        return entry[1].get(field)
+
+
+def cache_set(user_id: int, field: str, value) -> None:
+    key = _user_key(user_id)
+    if _redis:
+        _redis.hset(key, field, json.dumps(value))
+        _redis.expire(key, CACHE_TTL_SECONDS, nx=True)
+        return
+    with _lock:
+        entry = _local_cache.get(key)
+        if entry is None or entry[0] < time.monotonic():
+            entry = (time.monotonic() + CACHE_TTL_SECONDS, {})
+            _local_cache[key] = entry
+        entry[1][field] = value
+
+
+def invalidate_user(user_id: int) -> None:
+    if _redis:
+        _redis.delete(_user_key(user_id))
+        return
+    with _lock:
+        _local_cache.pop(_user_key(user_id), None)
+
+
+def clear_cache() -> None:
+    # tests only: forget everything cached
+    with _lock:
+        _local_cache.clear()

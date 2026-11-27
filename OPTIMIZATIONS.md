@@ -14,8 +14,9 @@ Newest at the bottom. "Trip" = one round trip between the backend and the databa
 | 5 | 2026-11-25 | Backend | `pool_pre_ping=True` -> `pool_recycle=300` (no connection test trip before each request) | `backend/app/database.py` | On the alexm PC (~237 ms trip): me 445 -> 337 ms, list 602 -> 369 ms, open chat 638 -> 472 ms, stats 601 -> 471 ms |
 | 6 | 2026-11-25 | Backend | One query per request: trust the login token (no user lookup), chat + messages in one query, one stats query | `backend/app/dependencies.py`, `backend/app/routers/*.py`, `backend/app/repositories/conversations.py`, `backend/app/repositories/stats.py` | Same network (~70 ms trip): list 313 -> 209 ms, open chat 391 -> 215 ms, stats 329 -> 204 ms (2-3 queries -> 1) |
 | 7 | 2026-11-27 | Database | App connects through the Supabase Transaction pooler (6543) instead of the Session pooler (5432) | root `.env` (`DATABASE_URL`), `.env.example` | 25 parallel connections: 6 ok / 19 refused -> 25/25 ok; 40 parallel health checks: 5 x 503 -> 0; trip unchanged (62 vs 63 ms) |
+| 8 | 2026-11-27 | Backend | Cache the chat list and stats per user (Redis, 60 s TTL, cleared on every change) | `backend/app/services/cache.py`, `backend/app/routers/conversations.py`, `stats.py`, `stream.py` | Repeat reads: list 149 -> 5 ms, stats 122 -> 5 ms (no database trip) |
 
-**Backend changes:** #3 (`expire_on_commit=False`, no `db.refresh`, `passive_deletes=True`), #5 (`pool_recycle` instead of `pool_pre_ping`), #6 (one query per request).
+**Backend changes:** #3 (`expire_on_commit=False`, no `db.refresh`, `passive_deletes=True`), #5 (`pool_recycle` instead of `pool_pre_ping`), #6 (one query per request), #8 (list/stats cache).
 **Frontend changes:** #2 ("+" without reload) and #4 (show first, correct after on send and delete).
 **Database / hosting:** #1 (Paris region), #7 (Transaction pooler for the app).
 
@@ -77,6 +78,18 @@ Newest at the bottom. "Trip" = one round trip between the backend and the databa
 - **Problem:** 40 parallel `/api/health` requests through Nginx gave 5 x 503. Inside the backend container, 25 parallel connections gave 6 ok and 19 `EMAXCONNSESSION max clients reached in session mode - max clients are limited to pool_size: 15`. The app used `DATABASE_URL_DIRECT` (Session pooler, port 5432), where every open connection holds one of 15 slots shared by every Gunicorn worker, PC, test run and script.
 - **Change:** new `DATABASE_URL` in root `.env` = the same Supabase string on port 6543 (Transaction pooler: a database connection is only held for one transaction). `config.py` already used `DATABASE_URL` when set, so no code changed. Alembic keeps `DATABASE_URL_DIRECT` (5432) for migrations. Nothing in the app needs session features (`SET`, `LISTEN`, temp tables, advisory locks; psycopg2 uses no prepared statements).
 - **Result:** 25 parallel connections 25/25 ok; 40 parallel health checks all 200; `SELECT 1` median 62 ms (5432) vs 63 ms (6543), so single requests are not faster or slower; pytest 56 passed. Matters for the 30-concurrent-chat load test. The other PCs need the `DATABASE_URL` line in their own `.env`.
+
+## 8. Backend: cache the chat list and stats (2026-11-27)
+
+- **Problem:** the sidebar list (`GET /api/conversations`) and the Stats page (`GET /api/users/{id}/stats`) are read far more often than they change, and every read cost a database trip (~60 ms to Paris, more from slower networks). `RAG_TODO.md` Go-Live item: cache them with a TTL and invalidate on changes.
+- **Change:**
+  1. `services/cache.py`: one Redis hash per user, `cache:user:<id>`, holding each list page (`list:<limit>:<offset>`) and `stats` as JSON. `cache_get` / `cache_set` / `invalidate_user` (deletes the whole hash). The 60 s TTL is set once (`EXPIRE ... NX`), so the entry cannot live on by being refilled. Without Redis (`REDIS_URL=memory://`: plain uvicorn, pytest) an in-memory dict with the same behaviour is used.
+  2. `get_chats` and `get_stats` read the cache first and store the result (`model_dump(mode="json")`) after a database read.
+  3. `invalidate_user(user_id)` after every change: new chat, saved message, deleted chat (`routers/conversations.py`), and in `POST /api/stream` after the question is saved (chat moves to the top) and after the answer is saved (new token counts).
+- **Result** (real uvicorn on the CCINTL PC, in-memory cache, Transaction pooler, median of 6; first read straight after a change vs the repeat read): list 149 -> 5 ms, stats 122 -> 5 ms. With Redis in Docker a hit adds about 1 ms (same machine). The first read after a change is unchanged.
+- **Tests:** new `tests/test_cache.py` (8 tests): a chat or message written straight into the database does not show until the cache is cleared (proves reads come from the cache), separate pages, create / delete / stream refresh the list and stats, one user's cache does not affect another, the TTL expires. Checked that the 4 refresh tests fail when `invalidate_user` is switched off. `conftest.py` clears the cache around every test. pytest 68 passed.
+- **Trade-off:** correctness depends on every write calling `invalidate_user`. All writes today go through those 5 places; a new write path (e.g. renaming chats, a stretch goal) must call it too. The TTL limits the damage of a missed call to 60 s.
+- **Not cached (on purpose):** opening one chat (`GET /api/conversations/{id}`) changes with every message and is read once per click, so a cache would mostly be cleared before it was used.
 
 ## Ideas not done (yet)
 

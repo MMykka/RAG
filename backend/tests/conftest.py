@@ -5,6 +5,15 @@ from sqlalchemy.orm import Session
 from app.database import engine, get_db
 from app.dependencies import limiter
 from app.main import app
+from app.services.cache import clear_cache
+
+
+@pytest.fixture(autouse=True)
+def reset_cache():
+    # every test starts with an empty list/stats cache (pytest uses the in-memory cache, not Redis)
+    clear_cache()
+    yield
+    clear_cache()
 
 
 @pytest.fixture(autouse=True)
