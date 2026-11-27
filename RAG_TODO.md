@@ -172,7 +172,7 @@ Items tagged **[stack]** were added to match the chosen tech stack (React + Vite
 ### Pre-Launch Testing
 
 - [ ]  **[stack]** Load test with locust or k6 simulating about 30 concurrent chats
-- [ ]  **[stack]** Verify user A cannot read, export, delete or see stats of user B’s data
+- [x]  **[stack]** Verify user A cannot read, export, delete or see stats of user B’s data
 - [ ]  **[stack]** Run the full flow through Nginx over HTTPS (login, stream, save, export, stats)
 
 ---
