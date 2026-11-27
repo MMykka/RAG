@@ -1,6 +1,6 @@
 #imports
 from fastapi import FastAPI
-from app.routers import auth, conversations, documents, export, stats, stream
+from app.routers import auth, conversations, documents, export, rename, search, stats, stream
 from fastapi import Depends
 from fastapi.responses import JSONResponse
 from sqlalchemy import text
@@ -69,7 +69,9 @@ def rate_limit_exceeded(request: Request, exc: RateLimitExceeded):
 
 # one router per feature
 app.include_router(auth.router)
+app.include_router(search.router)  # before conversations: "/search" must not be read as a chat id
 app.include_router(conversations.router)
+app.include_router(rename.router)
 app.include_router(stream.router)
 app.include_router(export.router)
 app.include_router(stats.router)

@@ -2,8 +2,8 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 from app.database import get_db
-from app.schemas.conversations import ConversationCreate, ConversationOut, ConversationRename, ConversationWithMessages, MessageCreate, MessageOut
-from app.repositories.conversations import create_conversation, delete_chat, get_chat_by_id, get_chat_with_messages, get_conversations, rename_conversation, save_message
+from app.schemas.conversations import ConversationCreate, ConversationOut, ConversationWithMessages, MessageCreate, MessageOut
+from app.repositories.conversations import create_conversation, delete_chat, get_chat_by_id, get_chat_with_messages, get_conversations, save_message
 from app.dependencies import get_current_user_id
 from app.services.cache import cache_get, cache_set, invalidate_user
 
@@ -44,6 +44,7 @@ def get_chats(user_id: int = Depends(get_current_user_id), db: Session = Depends
     return data
 
 
+# (search lives in routers/search.py, rename in routers/rename.py)
 @router.get("/{conversation_id}", response_model=ConversationWithMessages)
 def get_chat_id(conversation_id: int, user_id: int = Depends(get_current_user_id), db: Session = Depends(get_db)):
     # Cached in the user's own cache entry (services/cache.py), next to the list and stats, so it is
@@ -66,15 +67,6 @@ def save_message_to_chat(conversation_id: int, data: MessageCreate, db: Session 
     message = save_message(db, conversation, data)
     invalidate_user(user_id)  # the chat moved to the top: drop the cached list and stats
     return message
-
-
-# rename a chat (keeps its place in the list)
-@router.patch("/{conversation_id}", response_model=ConversationOut)
-def rename(conversation_id: int, data: ConversationRename, db: Session = Depends(get_db), user_id: int = Depends(get_current_user_id)):
-    conversation = get_chat_or_404(db, user_id, conversation_id)
-    renamed = rename_conversation(db, conversation, data.title)
-    invalidate_user(user_id)  # new title: drop the cached list
-    return renamed
 
 
 @router.delete("/{conversation_id}", status_code=204)

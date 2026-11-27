@@ -9,11 +9,7 @@ from datetime import datetime
 class ConversationCreate(BaseModel):
     title: str | None = Field(default=None, min_length=1, max_length=255)
 
-# ConversationRename: new title for PATCH /api/conversations/{id}.
-# Spaces around it are removed first, so "   " counts as empty and is refused.
-class ConversationRename(BaseModel):
-    model_config = {"str_strip_whitespace": True}
-    title: str = Field(min_length=1, max_length=255)
+# (ConversationRename is in schemas/rename.py, ConversationSearchHit in schemas/search.py)
 
 # ConversationOut schema that will be used to return conversation data
 class ConversationOut(BaseModel):

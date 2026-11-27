@@ -26,6 +26,12 @@ export function exportUrl(id, format) {
   return `/api/conversations/${id}/export?format=${format}`
 }
 
+// Search your own chats (titles and messages). Each result has a `snippet` (or null) in which
+// matching words sit between the characters \u0002 and \u0003.
+export function searchConversations(query, limit = 20) {
+  return apiFetch(`/api/conversations/search?q=${encodeURIComponent(query)}&limit=${limit}`)
+}
+
 // New title for a chat (1-255 characters; the server trims spaces). Keeps its place in the list.
 export function renameConversation(id, title) {
   return apiFetch(`/api/conversations/${id}`, { method: 'PATCH', body: { title } })

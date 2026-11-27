@@ -21,6 +21,7 @@ import {
   createConversation,
   deleteConversation,
   renameConversation,
+  searchConversations,
 } from '../api/conversations.js'
 import { getHealth } from '../api/client.js'
 import useStream from '../hooks/useStream.js'
@@ -200,6 +201,16 @@ export default function ChatPage({ user, onLogout, onSessionExpired }) {
     }
   }
 
+  // Sidebar search box. A 401 sends you back to the login page; other errors go to the sidebar.
+  async function searchChats(query) {
+    try {
+      return await searchConversations(query)
+    } catch (err) {
+      if (err.status === 401) onSessionExpired()
+      throw err
+    }
+  }
+
   const chatWindow = (
     <ChatWindow
       conversation={active}
@@ -230,6 +241,7 @@ export default function ChatPage({ user, onLogout, onSessionExpired }) {
         onNewChat={newChat}
         onDelete={deleteChat}
         onRename={renameChat}
+        onSearch={searchChats}
         onLogout={onLogout}
       />
 
