@@ -103,6 +103,66 @@ def test_stream_refreshes_list_and_stats(make_client, fake_ollama, db):
     assert alice.get(URL).json()[0]["id"] == older
 
 
+def test_open_chat_is_cached(make_client, db):
+    # a message written straight into the database does not clear the cache, so the chat still
+    # shows without it until the cache is cleared: proves the second open came from the cache
+    alice = make_client("alice")
+    chat_id = new_chat(alice)
+    assert alice.get(f"{URL}/{chat_id}").json()["messages"] == []
+
+    db.add(Message(conversation_id=chat_id, role="user", content="sneaked in"))
+    db.flush()
+    assert alice.get(f"{URL}/{chat_id}").json()["messages"] == []  # served from the cache
+
+    cache.clear_cache()
+    assert [m["content"] for m in alice.get(f"{URL}/{chat_id}").json()["messages"]] == ["sneaked in"]
+
+
+def test_new_message_refreshes_open_chat(make_client):
+    alice = make_client("alice")
+    chat_id = new_chat(alice)
+    assert alice.get(f"{URL}/{chat_id}").json()["messages"] == []  # cached as empty
+    alice.post(f"{URL}/{chat_id}/messages", json={"role": "user", "content": "hello"})
+    assert [m["content"] for m in alice.get(f"{URL}/{chat_id}").json()["messages"]] == ["hello"]
+
+
+def test_stream_refreshes_open_chat(make_client, fake_ollama):
+    # the frontend reopens the chat right after an answer: it must get the saved question and answer
+    alice = make_client("alice")
+    chat_id = new_chat(alice)
+    assert alice.get(f"{URL}/{chat_id}").json()["messages"] == []  # cached as empty
+    read_events(ask(alice, chat_id))
+    roles = [m["role"] for m in alice.get(f"{URL}/{chat_id}").json()["messages"]]
+    assert roles == ["user", "assistant"]
+
+
+def test_rename_refreshes_open_chat(make_client):
+    alice = make_client("alice")
+    chat_id = alice.post(URL, json={"title": "before"}).json()["id"]
+    assert alice.get(f"{URL}/{chat_id}").json()["title"] == "before"  # cached
+    alice.patch(f"{URL}/{chat_id}", json={"title": "after"})
+    assert alice.get(f"{URL}/{chat_id}").json()["title"] == "after"
+
+
+def test_deleted_chat_is_not_served_from_cache(make_client):
+    alice = make_client("alice")
+    chat_id = new_chat(alice)
+    assert alice.get(f"{URL}/{chat_id}").status_code == 200  # cached
+    alice.delete(f"{URL}/{chat_id}")
+    assert alice.get(f"{URL}/{chat_id}").status_code == 404
+
+
+def test_cached_chat_never_reaches_another_user(make_client):
+    # bob's open chat sits in bob's cache entry; alice asking for the same id still gets 404
+    bob = make_client("bob")
+    chat_id = bob.post(URL, json={"title": "bob's chat"}).json()["id"]
+    assert bob.get(f"{URL}/{chat_id}").status_code == 200  # now cached for bob
+    alice = make_client("alice")
+    response = alice.get(f"{URL}/{chat_id}")
+    assert response.status_code == 404
+    assert "bob" not in response.text
+
+
 def test_cache_expires(make_client, db, monkeypatch):
     # the TTL is the safety net: once it has passed, the next read goes to the database again
     monkeypatch.setattr(cache, "CACHE_TTL_SECONDS", 0)

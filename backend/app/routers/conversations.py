@@ -46,8 +46,17 @@ def get_chats(user_id: int = Depends(get_current_user_id), db: Session = Depends
 
 @router.get("/{conversation_id}", response_model=ConversationWithMessages)
 def get_chat_id(conversation_id: int, user_id: int = Depends(get_current_user_id), db: Session = Depends(get_db)):
+    # Cached in the user's own cache entry (services/cache.py), next to the list and stats, so it is
+    # cleared by the same invalidate_user call on every new message, answer, rename or delete.
+    # Only a chat that was found is cached: a 404 always asks the database again.
+    field = f"chat:{conversation_id}"
+    cached = cache_get(user_id, field)
+    if cached is not None:
+        return cached
     conversation = get_chat_or_404(db, user_id, conversation_id, with_messages=True)
-    return conversation
+    data = ConversationWithMessages.model_validate(conversation).model_dump(mode="json")
+    cache_set(user_id, field, data)
+    return data
 
 
 # save new message to a conversation

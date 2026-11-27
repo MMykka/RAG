@@ -194,10 +194,9 @@ Items tagged **[stack]** were added to match the chosen tech stack (React + Vite
 
 - [ ]  Search across all conversations (full-text or keyword)
 - [x]  Rename conversations / edit titles
-- [ ]  Conversation folders / organization (tagging)
-- [ ]  Performance: database query caching for frequently accessed conversations
+- [x]  Performance: database query caching for frequently accessed conversations
 - [ ]  **[stack]** Use Postgres full-text search (`tsvector`) for conversation search
-- [ ]  **[stack]** Use Redis for the query caching goal
+- [x]  **[stack]** Use Redis for the query caching goal
 - [ ]  **[stack]** Add GitHub Actions to run `pytest` on every push
 
 ---

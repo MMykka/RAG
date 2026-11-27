@@ -15,8 +15,9 @@ Newest at the bottom. "Trip" = one round trip between the backend and the databa
 | 6 | 2026-11-25 | Backend | One query per request: trust the login token (no user lookup), chat + messages in one query, one stats query | `backend/app/dependencies.py`, `backend/app/routers/*.py`, `backend/app/repositories/conversations.py`, `backend/app/repositories/stats.py` | Same network (~70 ms trip): list 313 -> 209 ms, open chat 391 -> 215 ms, stats 329 -> 204 ms (2-3 queries -> 1) |
 | 7 | 2026-11-27 | Database | App connects through the Supabase Transaction pooler (6543) instead of the Session pooler (5432) | root `.env` (`DATABASE_URL`), `.env.example` | 25 parallel connections: 6 ok / 19 refused -> 25/25 ok; 40 parallel health checks: 5 x 503 -> 0; trip unchanged (62 vs 63 ms) |
 | 8 | 2026-11-27 | Backend | Cache the chat list and stats per user (Redis, 60 s TTL, cleared on every change) | `backend/app/services/cache.py`, `backend/app/routers/conversations.py`, `stats.py`, `stream.py` | Repeat reads: list 149 -> 5 ms, stats 122 -> 5 ms (no database trip) |
+| 9 | 2026-11-27 | Backend | Also cache an opened chat (with its messages) in the same per-user entry | `backend/app/routers/conversations.py` (`get_chat_id`) | Reopening a 10-message chat: 120 -> 3 ms |
 
-**Backend changes:** #3 (`expire_on_commit=False`, no `db.refresh`, `passive_deletes=True`), #5 (`pool_recycle` instead of `pool_pre_ping`), #6 (one query per request), #8 (list/stats cache).
+**Backend changes:** #3 (`expire_on_commit=False`, no `db.refresh`, `passive_deletes=True`), #5 (`pool_recycle` instead of `pool_pre_ping`), #6 (one query per request), #8 (list/stats cache), #9 (opened chats cached too).
 **Frontend changes:** #2 ("+" without reload) and #4 (show first, correct after on send and delete).
 **Database / hosting:** #1 (Paris region), #7 (Transaction pooler for the app).
 
@@ -89,7 +90,15 @@ Newest at the bottom. "Trip" = one round trip between the backend and the databa
 - **Result** (real uvicorn on the CCINTL PC, in-memory cache, Transaction pooler, median of 6; first read straight after a change vs the repeat read): list 149 -> 5 ms, stats 122 -> 5 ms. With Redis in Docker a hit adds about 1 ms (same machine). The first read after a change is unchanged.
 - **Tests:** new `tests/test_cache.py` (8 tests): a chat or message written straight into the database does not show until the cache is cleared (proves reads come from the cache), separate pages, create / delete / stream refresh the list and stats, one user's cache does not affect another, the TTL expires. Checked that the 4 refresh tests fail when `invalidate_user` is switched off. `conftest.py` clears the cache around every test. pytest 68 passed.
 - **Trade-off:** correctness depends on every write calling `invalidate_user`. All writes today go through those 5 places; a new write path (e.g. renaming chats, a stretch goal) must call it too. The TTL limits the damage of a missed call to 60 s.
-- **Not cached (on purpose):** opening one chat (`GET /api/conversations/{id}`) changes with every message and is read once per click, so a cache would mostly be cleared before it was used.
+- **Not cached at first:** opening one chat (`GET /api/conversations/{id}`), because it changes with every message. Added later the same day, see #9.
+
+## 9. Backend: cache opened chats too (2026-11-27)
+
+- **Why after all:** `RAG_TODO.md` stretch goal "database query caching for frequently accessed conversations". #8 left opening a chat out because every message changes it. But a chat is also read again without changing: switching back and forth between chats, reloading the page, and the frontend's reload right after every answer (which fills the cache for the next open).
+- **Change:** `get_chat_id` reads field `chat:<id>` from the user's cache entry `cache:user:<id>` first, and stores the chat with its messages (`ConversationWithMessages ... model_dump(mode="json")`) after a database read. Because it lives in the same entry as the list and stats, the existing `invalidate_user` calls (new chat, message, answer, rename, delete) clear it too; no new invalidation code. Only found chats are cached (a 404 always asks the database), and the entry belongs to one user, so another user asking for the same id still gets 404.
+- **Result** (real uvicorn on the CCINTL PC, in-memory cache, chat with 10 messages, median of 6; first open straight after a change vs the repeat open): 120 -> 3 ms.
+- **Tests:** 6 more in `tests/test_cache.py` (cached open, new message / answer / rename refresh it, a deleted chat is not served from the cache, another user gets 404 for a chat cached for its owner). With `invalidate_user` switched off, the 4 refresh tests fail. pytest 112 passed.
+- **Cost:** a cached chat is stored as JSON for up to 60 s; a long chat is a few hundred KB at most, fine for Redis at this scale.
 
 ## Ideas not done (yet)
 
