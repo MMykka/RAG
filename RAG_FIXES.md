@@ -6,7 +6,17 @@ Newest at the top. Speed changes are in `OPTIMIZATIONS.md`; this file is about a
 
 ---
 
-## 1. Answers credited the wrong policy (2026-11-24)
+## 1. "I don't know" although the answer was in the context (2026-11-27)
+
+**Problem:** In the Docker app, "how many sick leaves am I allowed to have" got "I don't know.", and "hey how many sick leaves can i have" got "I don't know. The context doesn't specify the total number of sick leaves ..." followed by the right answer (10 paid sick days).
+
+**Cause:** Not the search: the saved sources show POL-04 (Sick Leave, "10 paid sick days per calendar year") ranked first. The old rule ("If the answer is not contained within the context, say 'I don't know'") was very strict, and the question's words ("sick leaves") are not the document's words ("sick days"), so the small model sometimes decided the answer was "not contained" and hedged. It happened only now and then (the old prompt answered 8/8 correctly in a direct test).
+
+**Solution:** Reworded the rules in `build_prompt` (`backend/app/services/rag.py`): answer directly and name the policy whenever the context has the answer, even if the question uses other words (with "sick leaves" vs "sick days" as the example); never start with "I don't know" or say the context "does not specify" when it has the answer; reply "I don't know." only if nothing in the context is relevant; add nothing that is not in the context. Checked with 7 questions asked 6 times each (scratchpad script, real search and Llama): both sick-leave wordings 12/12 "10 paid sick days" with no hedging, vacation 6/6, equipment 6/6 (POL-13), jeans 6/6 (POL-08), "Who is the CEO?" and "What is the capital of France?" 6/6 a plain "I don't know." Answers also became shorter and cite the policy more often. pytest 56 passed; Docker backend rebuilt.
+
+---
+
+## 2. Answers credited the wrong policy (2026-11-24)
 
 **Problem:** "What are the company equipments?" was answered with the right rules (laptops, phones and accessories stay company property) but credited them to "POL-08: Dress Code" and claimed the handbook had no general mention of company equipment.
 
@@ -16,7 +26,7 @@ Newest at the top. Speed changes are in `OPTIMIZATIONS.md`; this file is about a
 
 ---
 
-## 2. The first question after a pause was slow (2026-11-20)
+## 3. The first question after a pause was slow (2026-11-20)
 
 **Problem:** After a few idle minutes, the first question waited about 2.7 s before the search even started.
 
@@ -26,7 +36,7 @@ Newest at the top. Speed changes are in `OPTIMIZATIONS.md`; this file is about a
 
 ---
 
-## 3. Questions and document pieces were embedded the same way (2026-11-20)
+## 4. Questions and document pieces were embedded the same way (2026-11-20)
 
 **Problem:** The first version of `embed_documents` sent the raw text to the embedding model, which makes matches between a short question and a long document piece weaker.
 
@@ -36,7 +46,7 @@ Newest at the top. Speed changes are in `OPTIMIZATIONS.md`; this file is about a
 
 ---
 
-## 4. A useless extra chunk at the end of documents (2026-11-20)
+## 5. A useless extra chunk at the end of documents (2026-11-20)
 
 **Problem:** A 2500-character text was cut into pieces of 1000, 1000, 900 and 100 characters; the last piece only repeated the end of the one before it.
 
@@ -46,7 +56,7 @@ Newest at the top. Speed changes are in `OPTIMIZATIONS.md`; this file is about a
 
 ---
 
-## 5. "Empty" files were stored as a chunk (2026-11-20)
+## 6. "Empty" files were stored as a chunk (2026-11-20)
 
 **Problem:** A file saved empty by a Windows editor was not skipped; it was stored as a 1-character chunk.
 

@@ -145,7 +145,7 @@ Items tagged **[stack]** were added to match the chosen tech stack (React + Vite
 - [x]  **[stack]** Run the backend with Gunicorn + Uvicorn workers (`k uvicorn.workers.UvicornWorker`)
 - [x]  **[stack]** Build the React app (`npm run build`) and serve it from Nginx
 - [x]  **[stack]** Write `nginx.conf`: route `/` to React and `/api/` to FastAPI
-- [ ]  **[stack]** Set `proxy_buffering off` and `proxy_read_timeout 300s` on `/api/stream` so SSE works
+- [x]  **[stack]** Set `proxy_buffering off` and `proxy_read_timeout 300s` on `/api/stream` so SSE works
 - [ ]  **[stack]** Set up HTTPS (certbot or a company-supplied certificate) and redirect HTTP to HTTPS
 - [ ]  **[stack]** Set request size limits and `limit_req` throttling in Nginx
 
