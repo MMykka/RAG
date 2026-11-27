@@ -883,6 +883,17 @@ input {
   border-color: var(--color-field-edge);
 }
 
+/* Info panel in the drop zone's place while upload is not built: not clickable */
+.dropzone--info {
+  cursor: default;
+  padding: 0 var(--space-lg);
+  text-align: center;
+}
+
+.dropzone--info:hover {
+  border-color: var(--color-rule-strong);
+}
+
 /* Upload icon: at text size, no coloured coin behind it */
 .dropzone__icon {
   display: grid;

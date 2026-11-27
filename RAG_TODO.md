@@ -206,9 +206,9 @@ Items tagged **[stack]** were added to match the chosen tech stack (React + Vite
 
 The Documents page exists as a layout only. Documents are loaded with `scripts/ingest_documents.py` for now.
 
-- [ ]  `GET /api/documents`: list the documents in the knowledge base (name, chunks, date added, size), login required
-- [ ]  Documents page shows the real list from `GET /api/documents` (empty state when there are none)
-- [ ]  Fix the upload panel text so it does not promise what is not built yet
+- [x]  `GET /api/documents`: list the documents in the knowledge base (name, chunks, date added, size), login required
+- [x]  Documents page shows the real list from `GET /api/documents` (empty state when there are none)
+- [x]  Fix the upload panel text so it does not promise what is not built yet
 
 ---
 

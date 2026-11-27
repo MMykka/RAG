@@ -1,6 +1,6 @@
 #imports
 from fastapi import FastAPI
-from app.routers import auth, conversations, export, stats, stream
+from app.routers import auth, conversations, documents, export, stats, stream
 from fastapi import Depends
 from fastapi.responses import JSONResponse
 from sqlalchemy import text
@@ -73,6 +73,7 @@ app.include_router(conversations.router)
 app.include_router(stream.router)
 app.include_router(export.router)
 app.include_router(stats.router)
+app.include_router(documents.router)
 
 
 @app.get("/api/health")

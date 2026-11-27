@@ -120,7 +120,7 @@ Open http://localhost:5173, create an account on the login page (or log in), and
 - `src/api/`: all fetch calls (`client.js` shared helper + health, `auth.js`, `conversations.js`, `stream.js` = `POST /api/stream` read with a `ReadableStream`, partial events buffered).
 - `src/hooks/useStream.js`: state of the answer being streamed (text so far, token count) plus `start` / `stop` (`AbortController`). Answers appear word by word with "Thinking…" / "Writing · N tokens" under them; while an answer streams the send button turns into a Stop button (sending is blocked); a stopped answer stays on screen marked "Stopped · not saved"; stream errors show above the input box.
 - `src/components/`: `Sidebar`, `ChatWindow`, `MessageBubble`, `Icons` (inline SVGs).
-- `src/pages/`: `LoginPage`, `ChatPage` (holds the state, calls the API), `DocumentsPage` (upload panel; layout only, see the Documents Page section in `RAG_TODO.md`), `StatsPage` (your usage, via `src/api/stats.js` and `components/StatsDashboard`).
+- `src/pages/`: `LoginPage`, `ChatPage` (holds the state, calls the API), `DocumentsPage` (the knowledge base list from `GET /api/documents` via `src/api/documents.js`; browser upload not built yet, documents are added with `scripts/ingest_documents.py`), `StatsPage` (your usage, via `src/api/stats.js` and `components/StatsDashboard`).
 - Styles: `src/index.css`, with every colour, font and size in `src/tokens.css`.
 - Check the code: `npm run lint`; production build: `npm run build`.
 

@@ -220,7 +220,7 @@ export default function ChatPage({ user, onLogout, onSessionExpired }) {
         </main>
       ) : (
         <main className="main main--documents">
-          <DocumentsPage />
+          <DocumentsPage onSessionExpired={onSessionExpired} />
           {chatWindow}
         </main>
       )}
