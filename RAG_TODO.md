@@ -158,7 +158,7 @@ Items tagged **[stack]** were added to match the chosen tech stack (React + Vite
 
 ### LLM Serving
 
-- [ ]  **[stack]** Decide between Ollama and vLLM for production
+- [x]  **[stack]** Decide between Ollama and vLLM for production
 - [ ]  **[stack]** If Ollama, raise `OLLAMA_NUM_PARALLEL` and test its limits
 
 ### Monitoring & Operations
