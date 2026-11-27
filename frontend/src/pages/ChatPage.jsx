@@ -20,6 +20,7 @@ import {
   getConversation,
   createConversation,
   deleteConversation,
+  renameConversation,
 } from '../api/conversations.js'
 import { getHealth } from '../api/client.js'
 import useStream from '../hooks/useStream.js'
@@ -180,6 +181,25 @@ export default function ChatPage({ user, onLogout, onSessionExpired }) {
     }
   }
 
+  // Renamed in the sidebar. Show first: the new title appears at once (list and open chat).
+  // If the server refuses, the old title comes back and the error is shown.
+  async function renameChat(id, title) {
+    setError(null)
+    const old = conversations.find((c) => c.id === id)?.title
+    const setTitle = (t) => {
+      setConversations((list) => list.map((c) => (c.id === id ? { ...c, title: t } : c)))
+      setActive((chat) => (chat?.id === id ? { ...chat, title: t } : chat))
+    }
+    setTitle(title)
+    try {
+      const saved = await renameConversation(id, title)
+      setTitle(saved.title) // the server's version (spaces trimmed)
+    } catch (err) {
+      if (old !== undefined) setTitle(old)
+      handleError(err)
+    }
+  }
+
   const chatWindow = (
     <ChatWindow
       conversation={active}
@@ -209,6 +229,7 @@ export default function ChatPage({ user, onLogout, onSessionExpired }) {
         onSelect={selectChat}
         onNewChat={newChat}
         onDelete={deleteChat}
+        onRename={renameChat}
         onLogout={onLogout}
       />
 

@@ -26,6 +26,11 @@ export function exportUrl(id, format) {
   return `/api/conversations/${id}/export?format=${format}`
 }
 
+// New title for a chat (1-255 characters; the server trims spaces). Keeps its place in the list.
+export function renameConversation(id, title) {
+  return apiFetch(`/api/conversations/${id}`, { method: 'PATCH', body: { title } })
+}
+
 export function deleteConversation(id) {
   return apiFetch(`/api/conversations/${id}`, { method: 'DELETE' })
 }

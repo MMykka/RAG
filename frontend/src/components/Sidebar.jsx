@@ -3,10 +3,11 @@
 //   2. Navigation: Home (chat with the AI), Documents (upload knowledge) and
 //      Stats (your usage numbers).
 //   3. CHATS: every past conversation (newest first) with a truncated title
-//      and a timestamp. Click one to open it; the trash icon deletes it
-//      after a confirmation dialog.
+//      and a timestamp. Click one to open it; the pencil icon renames it in
+//      place (Enter or clicking away saves, Escape cancels); the trash icon
+//      deletes it after a confirmation dialog.
 //   4. Settings at the bottom (placeholder, no settings page in the plan yet).
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import {
   HomeIcon,
   DocumentsIcon,
@@ -15,6 +16,7 @@ import {
   SettingsIcon,
   PlusIcon,
   TrashIcon,
+  PencilIcon,
   LogOutIcon,
 } from './Icons.jsx'
 import { formatRelative } from '../utils/time.js'
@@ -29,10 +31,35 @@ export default function Sidebar({
   onSelect,
   onNewChat,
   onDelete,
+  onRename,
   onLogout,
 }) {
   const [menuOpen, setMenuOpen] = useState(false) // profile menu open?
   const [pendingDelete, setPendingDelete] = useState(null) // chat waiting for "Delete?" confirmation
+  const [editingId, setEditingId] = useState(null) // chat whose title is being edited
+  const [draft, setDraft] = useState('') // the title being typed
+  // Escape removes the input; a browser may fire "blur" while removing it, which would save.
+  // This flag tells finishRename that the edit was cancelled.
+  const cancelled = useRef(false)
+
+  function startRename(chat) {
+    cancelled.current = false
+    setEditingId(chat.id)
+    setDraft(chat.title)
+  }
+
+  // Enter or clicking away: save if the title really changed and is not empty
+  function finishRename(chat) {
+    setEditingId(null)
+    if (cancelled.current) return
+    const title = draft.trim()
+    if (title && title !== chat.title) onRename(chat.id, title.slice(0, 255))
+  }
+
+  function cancelRename() {
+    cancelled.current = true
+    setEditingId(null)
+  }
 
   return (
     <aside className="sidebar">
@@ -90,7 +117,25 @@ export default function Sidebar({
             <div className="chat-list__empty">No chats yet</div>
           )}
 
-          {conversations.map((chat) => (
+          {conversations.map((chat) =>
+            chat.id === editingId ? (
+              <div key={chat.id} className="chat-item chat-item--editing">
+                <input
+                  className="chat-item__input"
+                  value={draft}
+                  maxLength={255}
+                  autoFocus
+                  aria-label="Chat title"
+                  onChange={(event) => setDraft(event.target.value)}
+                  onFocus={(event) => event.target.select()}
+                  onBlur={() => finishRename(chat)}
+                  onKeyDown={(event) => {
+                    if (event.key === 'Enter') event.target.blur() // blur saves (finishRename)
+                    if (event.key === 'Escape') cancelRename() // keep the old title
+                  }}
+                />
+              </div>
+            ) : (
             <div
               key={chat.id}
               className={`chat-item ${chat.id === activeId ? 'chat-item--active' : ''}`}
@@ -99,6 +144,17 @@ export default function Sidebar({
             >
               <span className="chat-item__title">{chat.title}</span>
               <span className="chat-item__time">{formatRelative(chat.updated_at)}</span>
+              <button
+                className="chat-item__rename"
+                title="Rename chat"
+                aria-label={`Rename “${chat.title}”`}
+                onClick={(event) => {
+                  event.stopPropagation() // don't also open the chat
+                  startRename(chat)
+                }}
+              >
+                <PencilIcon size={14} />
+              </button>
               <button
                 className="chat-item__delete"
                 title="Delete chat"
@@ -110,7 +166,8 @@ export default function Sidebar({
                 <TrashIcon size={15} />
               </button>
             </div>
-          ))}
+            ),
+          )}
         </div>
       </div>
 
