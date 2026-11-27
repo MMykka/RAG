@@ -46,8 +46,9 @@ class Settings:
     ollama_max_tokens: int = int(os.environ.get("OLLAMA_MAX_TOKENS", "512"))
     ollama_mock: bool = os.environ.get("OLLAMA_MOCK", "false").lower() == "true"
     rag_top_k: int = int(os.environ.get("RAG_TOP_K", "5"))
-    
+
     redis_url: str = os.environ.get("REDIS_URL", "memory://")
+    max_generations: int = int(os.environ.get("MAX_GENERATIONS", "4"))
 
 
 

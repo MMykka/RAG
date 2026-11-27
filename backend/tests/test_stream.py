@@ -9,6 +9,8 @@ import app.routers.stream as stream_router
 import app.services.llm as llm
 import app.services.rag as rag
 from app.models.chunks import Chunk
+from app.config import settings
+from app.services.cache import active_generations
 
 ANSWER_PIECES = ["You get ", "27 holiday ", "days."]
 ANSWER = "".join(ANSWER_PIECES)
@@ -186,3 +188,31 @@ def test_stream_rate_limit_per_user(make_client, fake_ollama):
 
     bob = make_client("bob")
     assert ask(bob, new_chat(bob)).status_code == 200  # bob has a separate counter
+
+
+def test_stream_busy_503(make_client, fake_ollama, monkeypatch):
+    # every generation slot taken (cap 0): refused before anything is saved or Llama is asked
+    monkeypatch.setattr(settings, "max_generations", 0)
+    alice = make_client("alice")
+    chat_id = new_chat(alice)
+
+    response = ask(alice, chat_id)
+    assert response.status_code == 503
+    assert response.json() == {"detail": "The server is busy. Please try again."}
+    assert fake_ollama == []
+    assert alice.get(f"/api/conversations/{chat_id}").json()["messages"] == []
+
+
+def test_stream_releases_slot(make_client, fake_ollama):
+    # after an answer the slot is given back
+    alice = make_client("alice")
+    chat_id = new_chat(alice)
+    assert active_generations() == 0
+    ask(alice, chat_id)
+    assert active_generations() == 0
+
+
+def test_stream_releases_slot_on_error(make_client, broken_ollama):
+    alice = make_client("alice")
+    read_events(ask(alice, new_chat(alice)))
+    assert active_generations() == 0
