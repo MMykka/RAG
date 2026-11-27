@@ -12,4 +12,5 @@ gunicorn
 uvicorn-worker
 redis
 slowapi
+sentry-sdk[fastapi]
 

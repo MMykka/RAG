@@ -163,7 +163,7 @@ Items tagged **[stack]** were added to match the chosen tech stack (React + Vite
 
 ### Monitoring & Operations
 
-- [ ]  **[stack]** Add Sentry to the backend (and optionally the frontend) for error tracking
+- [x]  **[stack]** Add Sentry to the backend (and optionally the frontend) for error tracking
 - [ ]  **[stack]** Run Uptime Kuma and monitor `/api/health` with alerts
 - [ ]  **[stack]** Log latency, tokens and errors per request
 - [ ]  **[stack]** Confirm database backups (Supabase plan or scheduled `pg_dump`)

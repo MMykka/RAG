@@ -49,6 +49,9 @@ class Settings:
 
     redis_url: str = os.environ.get("REDIS_URL", "memory://")
     max_generations: int = int(os.environ.get("MAX_GENERATIONS", "4"))
+    
+    sentry_dsn: str = os.environ.get("SENTRY_DSN", "")
+    sentry_environment: str = os.environ.get("SENTRY_ENVIRONMENT", "development")
 
 
 

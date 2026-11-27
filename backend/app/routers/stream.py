@@ -15,6 +15,7 @@ from app.repositories.conversations import save_message
 from app.schemas.conversations import MessageCreate, SourceRef
 from app.services.rag import retrieve_chunks, build_prompt
 from app.services.cache import take_slot, release_slot, invalidate_user
+import sentry_sdk
 
 
 router = APIRouter(prefix="/api/stream", tags=["stream"])
@@ -86,6 +87,7 @@ def stream(request: Request, data: StreamRequest, db: Session = Depends(get_db),
 
                 yield f"data: {json.dumps({'token': piece, 'text': text, 'percent': percent})}\n\n"
         except Exception as e:
+            sentry_sdk.capture_exception(e)
             print("Stream Failed", e)
             yield f"data: {json.dumps({'error': 'The AI stopped answering. Please try again.', 'text': text})}\n\n"
             return 

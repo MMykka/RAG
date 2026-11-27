@@ -9,8 +9,26 @@ from app.database import get_db
 from fastapi import Request
 from slowapi.errors import RateLimitExceeded
 from app.dependencies import limiter
+import sentry_sdk
+from app.config import settings
 
 
+if settings.sentry_dsn:
+    sentry_sdk.init(
+        dsn=settings.sentry_dsn,
+        environment=settings.sentry_environment,
+        # Keep company data out of the error reports (sentry-sdk 3.x option names):
+        data_collection={
+            "user_info": False,                         # no user ids, e-mails or IP addresses
+            "cookies": {"mode": "off"},                 # never the login cookie
+            "http_headers": {"request": {"mode": "off"}},  # no request headers
+            "http_bodies": [],                          # no request bodies (questions, passwords)
+            "stack_frame_variables": False,             # no variable values (e.g. chat text) in stack traces
+        },
+        max_request_body_size="never",
+        traces_sample_rate=None,  # errors only, no performance tracing
+    )
+    
 app = FastAPI()
 
 # slowapi looks for the limiter here when an endpoint has @limiter.limit(...)

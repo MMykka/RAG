@@ -1,3 +1,9 @@
+import os
+
+# Tests must never send error reports to Sentry (the fake Ollama crashes on purpose).
+# Set before the app is imported: a variable already in the environment wins over .env.
+os.environ["SENTRY_DSN"] = ""
+
 import pytest
 from fastapi.testclient import TestClient
 from sqlalchemy.orm import Session
